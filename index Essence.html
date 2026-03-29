@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essence Arenal — Guest Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #1a2e1a;
+    --moss: #2d4a2d;
+    --fern: #4a7c59;
+    --sage: #7aaa86;
+    --mist: #c8dbc8;
+    --cream: #f5f0e8;
+    --sand: #e8dcc8;
+    --gold: #c8a96e;
+    --clay: #8b6b4a;
+    --white: #faf8f4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--forest);
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === BACKGROUND === */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(74,124,89,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(45,74,45,0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(26,46,26,0.8) 0%, transparent 60%),
+      linear-gradient(160deg, #0f1f0f 0%, #1a2e1a 40%, #2d4a2d 100%);
+  }
+  .bg-layer::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%234a7c59' opacity='0.15'/%3E%3C/svg%3E");
+    background-size: 60px 60px;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* === LOGIN SCREEN === */
+  #login-screen {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+
+  .login-card {
+    background: rgba(15, 31, 15, 0.85);
+    border: 1px solid rgba(122,170,134,0.25);
+    border-radius: 2px;
+    padding: 3.5rem;
+    width: 100%; max-width: 440px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(122,170,134,0.1);
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .login-logo {
+    text-align: center; margin-bottom: 2.5rem;
+  }
+  .login-logo .leaf { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+  .login-logo h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300;
+    letter-spacing: 0.15em; color: var(--cream);
+  }
+  .login-logo p {
+    font-size: 0.65rem; letter-spacing: 0.35em;
+    color: var(--sage); text-transform: uppercase; margin-top: 0.3rem;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(122,170,134,0.3), transparent);
+  }
+  .divider span { font-size: 0.6rem; letter-spacing: 0.3em; color: var(--fern); text-transform: uppercase; }
+
+  .field-group { margin-bottom: 1.2rem; }
+  .field-group label {
+    display: block; font-size: 0.6rem; letter-spacing: 0.35em;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 0.5rem;
+  }
+  .field-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(122,170,134,0.2);
+    border-radius: 2px;
+    padding: 0.85rem 1rem;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem; font-weight: 300;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  .field-group input:focus {
+    border-color: var(--sage);
+    background: rgba(122,170,134,0.06);
+    box-shadow: 0 0 0 3px rgba(122,170,134,0.08);
+  }
+  .field-group input::placeholder { color: rgba(200,219,200,0.3); }
+
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--fern) 0%, var(--moss) 100%);
+    border: none; border-radius: 2px;
+    padding: 0.95rem;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem; font-weight: 400;
+    letter-spacing: 0.4em; text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(74,124,89,0.4); }
+  .btn-primary:hover::before { opacity: 1; }
+  .btn-primary:active { transform: translateY(0); }
+
+  .error-msg {
+    background: rgba(180,60,60,0.15);
+    border: 1px solid rgba(180,60,60,0.3);
+    border-radius: 2px;
+    padding: 0.7rem 1rem;
+    font-size: 0.75rem; color: #e8a0a0;
+    margin-bottom: 1rem;
+    display: none;
+    animation: shake 0.3s ease;
+  }
+  .error-msg.show { display: block; }
+
+  /* === MAIN PORTAL === */
+  #portal { display: none; }
+
+  /* Header */
+  .portal-header {
+    padding: 1.5rem 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(122,170,134,0.15);
+    background: rgba(10,20,10,0.6);
+    backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .portal-header-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 300;
+    letter-spacing: 0.12em; color: var(--cream);
+  }
+  .portal-header-brand span { color: var(--sage); }
+  .room-badge {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(122,170,134,0.1);
+    border: 1px solid rgba(122,170,134,0.25);
+    border-radius: 50px; padding: 0.4rem 1rem;
+    font-size: 0.65rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--sage);
+  }
+  .room-badge .dot { width: 6px; height: 6px; background: var(--fern); border-radius: 50%; animation: pulse 2s infinite; }
+
+  .logout-btn {
+    background: none; border: 1px solid rgba(122,170,134,0.2);
+    border-radius: 2px; padding: 0.4rem 1rem;
+    color: var(--sage); font-family: 'Jost', sans-serif;
+    font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .logout-btn:hover { background: rgba(122,170,134,0.1); border-color: var(--sage); }
+
+  /* Nav Tabs */
+  .portal-nav {
+    display: flex; gap: 0;
+    border-bottom: 1px solid rgba(122,170,134,0.12);
+    padding: 0 2.5rem;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 1.1rem 1.8rem;
+    font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: rgba(200,219,200,0.5);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s; white-space: nowrap;
+    font-family: 'Jost', sans-serif;
+  }
+  .nav-tab:hover { color: var(--sage); }
+  .nav-tab.active { color: var(--cream); border-bottom-color: var(--gold); }
+  .nav-tab .tab-icon { margin-right: 0.5rem; }
+
+  /* Sections */
+  .portal-section { display: none; padding: 2.5rem; animation: fadeUp 0.5s ease; }
+  .portal-section.active { display: block; }
+
+  .section-header { margin-bottom: 2.5rem; }
+  .section-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem; font-weight: 300;
+    color: var(--cream); letter-spacing: 0.05em;
+  }
+  .section-header h2 em { color: var(--sage); font-style: italic; }
+  .section-header p {
+    color: rgba(200,219,200,0.6); font-size: 0.85rem;
+    font-weight: 300; margin-top: 0.4rem; letter-spacing: 0.05em;
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .service-card {
+    background: rgba(15,31,15,0.7);
+    border: 1px solid rgba(122,170,134,0.18);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+  .service-card:hover {
+    border-color: rgba(122,170,134,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(122,170,134,0.1);
+  }
+
+  .card-visual {
+    height: 140px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    position: relative; overflow: hidden;
+  }
+  .card-visual::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(15,31,15,0.8));
+  }
+
+  .card-body { padding: 1.4rem; }
+  .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 400;
+    color: var(--cream); letter-spacing: 0.05em; margin-bottom: 0.3rem;
+  }
+  .card-sub {
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 0.7rem;
+  }
+  .card-desc {
+    font-size: 0.8rem; color: rgba(200,219,200,0.6);
+    line-height: 1.6; font-weight: 300; margin-bottom: 1rem;
+  }
+  .card-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 300;
+    color: var(--gold);
+  }
+  .card-price span { font-size: 0.75rem; color: rgba(200,170,110,0.6); }
+
+  .btn-book {
+    width: 100%; margin-top: 0.8rem;
+    background: transparent;
+    border: 1px solid rgba(200,169,110,0.4);
+    border-radius: 2px; padding: 0.65rem;
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .btn-book:hover {
+    background: rgba(200,169,110,0.1);
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(200,169,110,0.15);
+  }
+
+  /* Therapist specific */
+  .therapist-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--moss), var(--fern));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin-bottom: 1rem;
+    border: 2px solid rgba(122,170,134,0.3);
+  }
+  .therapist-card {
+    background: rgba(15,31,15,0.7);
+    border: 1px solid rgba(122,170,134,0.18);
+    border-radius: 2px; padding: 1.8rem;
+    transition: all 0.4s ease;
+  }
+  .therapist-card:hover {
+    border-color: rgba(122,170,134,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .therapist-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400; color: var(--cream);
+    letter-spacing: 0.05em;
+  }
+  .therapist-specialty {
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--sage); margin: 0.3rem 0 0.8rem;
+  }
+  .therapist-bio {
+    font-size: 0.8rem; color: rgba(200,219,200,0.6);
+    line-height: 1.7; font-weight: 300;
+  }
+  .duration-options {
+    display: flex; gap: 0.6rem; margin-top: 1rem;
+  }
+  .duration-btn {
+    flex: 1; padding: 0.6rem;
+    background: transparent;
+    border: 1px solid rgba(122,170,134,0.25);
+    border-radius: 2px; color: var(--sage);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+    text-align: center;
+  }
+  .duration-btn:hover, .duration-btn.selected {
+    background: rgba(122,170,134,0.15);
+    border-color: var(--sage); color: var(--cream);
+  }
+  .duration-price {
+    display: block; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--gold); margin-top: 0.2rem;
+  }
+
+  /* Room Service */
+  .menu-category { margin-bottom: 2.5rem; }
+  .menu-category-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 300; color: var(--sage);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(122,170,134,0.15);
+  }
+  .menu-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .menu-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: rgba(15,31,15,0.7);
+    border: 1px solid rgba(122,170,134,0.15);
+    border-radius: 2px; padding: 1rem;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .menu-item:hover { border-color: rgba(122,170,134,0.35); background: rgba(15,31,15,0.9); }
+  .menu-item-emoji { font-size: 1.8rem; flex-shrink: 0; }
+  .menu-item-info { flex: 1; }
+  .menu-item-name { font-size: 0.9rem; color: var(--cream); font-weight: 300; }
+  .menu-item-desc { font-size: 0.72rem; color: rgba(200,219,200,0.5); margin-top: 0.2rem; }
+  .menu-item-price { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); flex-shrink: 0; }
+  .qty-control {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .qty-btn {
+    width: 24px; height: 24px;
+    background: rgba(122,170,134,0.1);
+    border: 1px solid rgba(122,170,134,0.25);
+    border-radius: 2px; color: var(--sage);
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .qty-btn:hover { background: rgba(122,170,134,0.25); }
+  .qty-display { font-size: 0.85rem; color: var(--cream); min-width: 20px; text-align: center; }
+
+  /* Cart */
+  .cart-bar {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: rgba(10,20,10,0.95);
+    border: 1px solid rgba(200,169,110,0.4);
+    border-radius: 50px;
+    padding: 0.8rem 2rem;
+    display: flex; align-items: center; gap: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 200;
+    transition: all 0.4s ease;
+    white-space: nowrap;
+  }
+  .cart-bar.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(20px); }
+  .cart-count {
+    background: var(--gold); color: var(--forest);
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 500;
+  }
+  .cart-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); }
+  .cart-total { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); }
+  .cart-btn {
+    background: var(--gold); color: var(--forest);
+    border: none; border-radius: 50px;
+    padding: 0.5rem 1.2rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+    cursor: pointer; font-weight: 500; transition: all 0.3s;
+  }
+  .cart-btn:hover { background: var(--cream); }
+
+  /* Tours */
+  .tour-card {
+    background: rgba(15,31,15,0.7);
+    border: 1px solid rgba(122,170,134,0.18);
+    border-radius: 2px; overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .tour-card:hover {
+    border-color: rgba(122,170,134,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .tour-visual {
+    height: 160px; padding: 2rem;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    position: relative;
+  }
+  .tour-badge {
+    position: absolute; top: 1rem; right: 1rem;
+    background: rgba(10,20,10,0.8);
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 50px; padding: 0.3rem 0.8rem;
+    font-size: 0.6rem; letter-spacing: 0.2em; color: var(--gold);
+    text-transform: uppercase;
+  }
+  .tour-body { padding: 1.4rem; }
+  .tour-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; color: var(--cream); margin-bottom: 0.3rem;
+  }
+  .tour-meta {
+    display: flex; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap;
+  }
+  .tour-meta-item {
+    font-size: 0.65rem; color: var(--sage); letter-spacing: 0.1em;
+  }
+  .tour-meta-item span { margin-right: 0.3rem; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(5,15,5,0.85);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #0f1f0f;
+    border: 1px solid rgba(122,170,134,0.25);
+    border-radius: 2px;
+    padding: 2.5rem;
+    width: 100%; max-width: 480px;
+    transform: translateY(20px); transition: transform 0.3s ease;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; color: var(--cream); margin-bottom: 0.3rem;
+  }
+  .modal-sub { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--sage); text-transform: uppercase; margin-bottom: 2rem; }
+  .modal-field { margin-bottom: 1.2rem; }
+  .modal-field label {
+    display: block; font-size: 0.6rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 0.4rem;
+  }
+  .modal-field input, .modal-field select, .modal-field textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(122,170,134,0.2);
+    border-radius: 2px; padding: 0.75rem 1rem;
+    color: var(--cream); font-family: 'Jost', sans-serif;
+    font-size: 0.9rem; outline: none;
+    transition: all 0.3s;
+  }
+  .modal-field select option { background: #0f1f0f; }
+  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+    border-color: var(--sage); background: rgba(122,170,134,0.05);
+  }
+  .modal-field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+  .btn-cancel {
+    flex: 1; background: transparent;
+    border: 1px solid rgba(122,170,134,0.2);
+    border-radius: 2px; padding: 0.8rem;
+    color: var(--sage); font-family: 'Jost', sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .btn-cancel:hover { background: rgba(122,170,134,0.08); }
+  .btn-confirm {
+    flex: 2; background: linear-gradient(135deg, var(--fern), var(--moss));
+    border: none; border-radius: 2px; padding: 0.8rem;
+    color: var(--cream); font-family: 'Jost', sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .btn-confirm:hover { opacity: 0.9; box-shadow: 0 5px 20px rgba(74,124,89,0.3); }
+
+  /* Success */
+  .success-toast {
+    position: fixed; top: 2rem; right: 2rem; z-index: 600;
+    background: rgba(45,74,45,0.95);
+    border: 1px solid rgba(122,170,134,0.4);
+    border-radius: 2px; padding: 1.2rem 1.8rem;
+    backdrop-filter: blur(20px);
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 320px;
+  }
+  .success-toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .toast-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--cream); }
+  .toast-msg { font-size: 0.75rem; color: var(--sage); margin-top: 0.2rem; }
+
+  /* Welcome Banner */
+  .welcome-banner {
+    background: linear-gradient(135deg, rgba(45,74,45,0.4), rgba(74,124,89,0.2));
+    border: 1px solid rgba(122,170,134,0.2);
+    border-radius: 2px; padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .welcome-text h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 300; color: var(--cream);
+  }
+  .welcome-text p { font-size: 0.8rem; color: var(--sage); margin-top: 0.3rem; }
+  .welcome-emoji { font-size: 3rem; }
+
+  /* Bookings list */
+  .bookings-list { display: flex; flex-direction: column; gap: 1rem; }
+  .booking-item {
+    background: rgba(15,31,15,0.7);
+    border: 1px solid rgba(122,170,134,0.15);
+    border-left: 3px solid var(--fern);
+    border-radius: 2px; padding: 1.2rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem;
+  }
+  .booking-type { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--sage); }
+  .booking-name { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--cream); }
+  .booking-detail { font-size: 0.75rem; color: rgba(200,219,200,0.5); }
+  .booking-status {
+    background: rgba(74,124,89,0.2); border: 1px solid rgba(122,170,134,0.3);
+    border-radius: 50px; padding: 0.25rem 0.8rem;
+    font-size: 0.6rem; letter-spacing: 0.2em; color: var(--sage);
+    text-transform: uppercase;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--moss); border-radius: 2px; }
+
+  @media (max-width: 600px) {
+    .portal-header { padding: 1rem 1.2rem; flex-wrap: wrap; gap: 0.5rem; }
+    .portal-nav { padding: 0 1rem; }
+    .portal-section { padding: 1.5rem 1rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .login-card { padding: 2rem 1.5rem; }
+    .cart-bar { left: 1rem; right: 1rem; transform: none; }
+    .cart-bar.hidden { transform: translateY(20px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="content">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="leaf">🌿</span>
+      <h1>Essence Arenal</h1>
+      <p>Hotel · Spa · Bio Farm</p>
+    </div>
+    <div class="divider"><span>Guest Portal</span></div>
+    <div id="error-msg" class="error-msg">Incorrect room or PIN. Please try again.</div>
+    <div class="field-group">
+      <label>Room Number</label>
+      <input type="number" id="room-input" placeholder="1 – 30" min="1" max="30" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <label>Guest PIN</label>
+      <input type="tel" id="pin-input" placeholder="· · ·" maxlength="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="-webkit-text-security: disc;">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Enter · Bienvenido</button>
+    <div class="divider" style="margin-top:1.5rem"><span>Essence Arenal · El Castillo · Costa Rica</span></div>
+  </div>
+</div>
+
+<!-- PORTAL -->
+<div id="portal">
+  <header class="portal-header">
+    <div class="portal-header-brand">Essence <span>Arenal</span></div>
+    <div class="room-badge"><div class="dot"></div><span id="room-label">Room —</span></div>
+    <button class="logout-btn" onclick="doLogout()">← Exit</button>
+  </header>
+
+  <nav class="portal-nav">
+    <button class="nav-tab active" onclick="switchTab('massage', this)"><span class="tab-icon">🌺</span>Spa & Massage</button>
+    <button class="nav-tab" onclick="switchTab('roomservice', this)"><span class="tab-icon">🍃</span>Room Service</button>
+    <button class="nav-tab" onclick="switchTab('tours', this)"><span class="tab-icon">🌋</span>Tours</button>
+    <button class="nav-tab" onclick="switchTab('mybookings', this)"><span class="tab-icon">📋</span>My Bookings</button>
+  </nav>
+
+  <!-- MASSAGE TAB -->
+  <section id="tab-massage" class="portal-section active">
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h3>Welcome to our Spa & Wellness</h3>
+        <p>Nestled in the rainforest · Choose your therapist and session</p>
+      </div>
+      <div class="welcome-emoji">🌿</div>
+    </div>
+    <div class="section-header">
+      <h2>Our <em>Therapists</em></h2>
+      <p>Select a therapist, choose your duration, and request your preferred time</p>
+    </div>
+    <div class="cards-grid" id="therapist-grid"></div>
+  </section>
+
+  <!-- ROOM SERVICE TAB -->
+  <section id="tab-roomservice" class="portal-section">
+    <div class="section-header">
+      <h2>Room <em>Service</em></h2>
+      <p>Organic, fresh, delivered to your door · Powered by our Bio Farm</p>
+    </div>
+    <div id="menu-container"></div>
+    <div id="order-notes-wrap" style="display:none; margin-top:1.5rem;">
+      <div class="modal-field">
+        <label>Special Notes / Allergies</label>
+        <textarea id="order-notes" placeholder="Any dietary notes or special requests..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="placeRoomServiceOrder()" style="max-width:280px; margin-top:0.5rem;">Place Order</button>
+    </div>
+  </section>
+
+  <!-- TOURS TAB -->
+  <section id="tab-tours" class="portal-section">
+    <div class="section-header">
+      <h2>Experiences & <em>Tours</em></h2>
+      <p>Explore the magic of Arenal · Book your adventure</p>
+    </div>
+    <div class="cards-grid" id="tours-grid"></div>
+  </section>
+
+  <!-- MY BOOKINGS -->
+  <section id="tab-mybookings" class="portal-section">
+    <div class="section-header">
+      <h2>My <em>Bookings</em></h2>
+      <p>All your requests for Room <span id="room-label-2">—</span></p>
+    </div>
+    <div id="bookings-container">
+      <p style="color:rgba(200,219,200,0.4); font-size:0.85rem; font-style:italic;">No bookings yet — explore the menu above ✦</p>
+    </div>
+  </section>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Book Session</div>
+    <div class="modal-sub" id="modal-sub">Spa & Wellness</div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmBooking()">Confirm Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART BAR -->
+<div class="cart-bar hidden" id="cart-bar">
+  <div class="cart-count" id="cart-count">0</div>
+  <span class="cart-label">Cart</span>
+  <span class="cart-total" id="cart-total">$0</span>
+  <button class="cart-btn" onclick="openCartModal()">Order Now</button>
+</div>
+
+<!-- TOAST -->
+<div class="success-toast" id="toast">
+  <div class="toast-icon">✓</div>
+  <div class="toast-title" id="toast-title">Booking Confirmed!</div>
+  <div class="toast-msg" id="toast-msg">We'll be with you shortly.</div>
+</div>
+
+</div><!-- end .content -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const therapists = [
+  {
+    id: 't1', name: 'Valentina Rojas', emoji: '🌸',
+    specialty: 'Deep Tissue · Aromatherapy',
+    bio: 'Trained in traditional Costa Rican healing methods, Valentina blends deep tissue work with botanical aromatherapy from our Bio Farm.',
+    prices: { '30 min': 55, '60 min': 95 },
+    available: ['9:00 AM','10:00 AM','2:00 PM','3:00 PM','4:30 PM']
+  },
+  {
+    id: 't2', name: 'Marcos Solís', emoji: '🍃',
+    specialty: 'Hot Stone · Relaxation',
+    bio: 'Specialist in volcanic hot stone therapy using locally sourced stones from the Arenal region. A deeply grounding experience.',
+    prices: { '30 min': 60, '60 min': 105 },
+    available: ['10:00 AM','11:30 AM','3:00 PM','5:00 PM']
+  },
+  {
+    id: 't3', name: 'Isabela Mora', emoji: '🌿',
+    specialty: 'Thai · Stretching · Energy',
+    bio: 'Certified Thai massage practitioner with a focus on energy flow and body alignment. Isabela combines ancient techniques with intuitive bodywork.',
+    prices: { '30 min': 58, '60 min': 100 },
+    available: ['8:00 AM','9:30 AM','1:00 PM','4:00 PM']
+  },
+  {
+    id: 't4', name: 'Carlos Ureña', emoji: '🌊',
+    specialty: 'Swedish · Sports Recovery',
+    bio: 'Former sports therapist now devoted to holistic recovery. Carlos specializes in muscle relief and nervous system reset.',
+    prices: { '30 min': 55, '60 min': 95 },
+    available: ['11:00 AM','2:00 PM','3:30 PM','5:30 PM']
+  }
+];
+
+const menuItems = {
+  '🍵 Teas & Infusions': [
+    { name: 'Jungle Ginger Tea', desc: 'Fresh ginger, lemongrass, local honey', price: 5, emoji: '🫖' },
+    { name: 'Cacao Ceremony Brew', desc: 'Raw ceremonial cacao, cinnamon, chili', price: 8, emoji: '🍫' },
+    { name: 'Mint & Lemon Verbena', desc: 'Garden-fresh, naturally calming', price: 5, emoji: '🌱' },
+    { name: 'Hibiscus & Rosehip', desc: 'Chilled or warm, antioxidant-rich', price: 6, emoji: '🌺' },
+  ],
+  '🥤 Fresh Juices & Waters': [
+    { name: 'Pura Vida Green Juice', desc: 'Spinach, cucumber, apple, ginger', price: 9, emoji: '🥬' },
+    { name: 'Tropical Sunrise', desc: 'Mango, pineapple, turmeric, orange', price: 9, emoji: '🥭' },
+    { name: 'Coconut Water', desc: 'Fresh-cut from the farm', price: 7, emoji: '🥥' },
+    { name: 'Infused Spa Water', desc: 'Cucumber, mint, lemon. 1L pitcher', price: 6, emoji: '💧' },
+  ],
+  '🥗 Light Bites & Snacks': [
+    { name: 'Farm Fruit Bowl', desc: 'Seasonal fruits, local honey drizzle', price: 12, emoji: '🍓' },
+    { name: 'Avocado Toast', desc: 'Sourdough, farm avocado, microgreens', price: 14, emoji: '🥑' },
+    { name: 'Açaí Bowl', desc: 'Granola, banana, cacao nibs, honey', price: 15, emoji: '🫐' },
+    { name: 'Hummus & Veggie Platter', desc: 'House hummus, raw veggies, crackers', price: 13, emoji: '🥕' },
+  ],
+  '🍽️ Meals': [
+    { name: 'Rainforest Wrap', desc: 'Black bean, roasted veg, chipotle mayo', price: 18, emoji: '🌯' },
+    { name: 'Pura Tierra Salad', desc: 'Quinoa, roasted pumpkin, tahini', price: 17, emoji: '🥗' },
+    { name: 'Arenal Soup of the Day', desc: 'Ask us — changes with the harvest', price: 14, emoji: '🍲' },
+    { name: 'Rice & Gallo Pinto', desc: 'Traditional Costa Rican comfort', price: 16, emoji: '🍚' },
+  ]
+};
+
+const tours = [
+  {
+    id: 'tour1', name: 'Arenal Volcano Hike', emoji: '🌋',
+    duration: '5 hrs', difficulty: 'Moderate', price: 75,
+    desc: 'Trek through primary rainforest with panoramic views of the iconic Arenal Volcano. Guided by a local naturalist.',
+    badge: 'Most Popular', color: 'rgba(139,107,74,0.3)'
+  },
+  {
+    id: 'tour2', name: 'Cacao Farm Experience', emoji: '🍫',
+    duration: '2.5 hrs', difficulty: 'Easy', price: 45,
+    desc: 'Journey through our Bio Farm, harvest cacao pods, and create your own ceremonial chocolate. A multisensory adventure.',
+    badge: 'Farm Tour', color: 'rgba(45,74,45,0.5)'
+  },
+  {
+    id: 'tour3', name: 'Jungle Night Walk', emoji: '🦋',
+    duration: '2 hrs', difficulty: 'Easy', price: 40,
+    desc: 'Discover the nocturnal magic of the rainforest. Spot frogs, insects, and hear the symphony of the night.',
+    badge: 'After Dark', color: 'rgba(26,46,26,0.7)'
+  },
+  {
+    id: 'tour4', name: 'Lake Arenal Kayak', emoji: '🚣',
+    duration: '3 hrs', difficulty: 'Easy-Mod', price: 65,
+    desc: 'Paddle across the serene Lake Arenal with volcano views. Includes equipment, guide, and a post-paddle snack.',
+    badge: 'Water', color: 'rgba(30,60,80,0.5)'
+  },
+  {
+    id: 'tour5', name: 'Butterfly Conservatory', emoji: '🦋',
+    duration: '1.5 hrs', difficulty: 'Easy', price: 30,
+    desc: 'Step inside the magical butterfly world next door — hundreds of tropical species in a lush garden setting.',
+    badge: 'Nearby', color: 'rgba(60,40,80,0.4)'
+  },
+  {
+    id: 'tour6', name: 'Waterfall & Forest Swim', emoji: '💦',
+    duration: '4 hrs', difficulty: 'Moderate', price: 60,
+    desc: 'Hike to hidden waterfalls and natural swimming holes deep in the jungle. Refreshing and unforgettable.',
+    badge: 'Adventure', color: 'rgba(30,70,60,0.5)'
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentRoom = '';
+let cart = {}; // itemName: qty
+let bookings = [];
+let pendingBooking = {};
+
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin() {
+  const room = document.getElementById('room-input').value.trim();
+  const rawPin = document.getElementById('pin-input').value;
+  const pin = rawPin.replace(/\D/g, '').trim(); // strip any non-digit characters
+  const err = document.getElementById('error-msg');
+  const roomNum = parseInt(room, 10);
+  if (!room) { err.textContent = 'Please enter your room number.'; err.classList.add('show'); return; }
+  if (isNaN(roomNum) || roomNum < 1 || roomNum > 30) { err.textContent = 'Room number must be between 1 and 30.'; err.classList.add('show'); return; }
+  if (pin !== '777') { err.classList.add('show'); err.textContent = 'Incorrect PIN. Please enter 777.'; return; }
+  err.classList.remove('show');
+  currentRoom = room;
+  document.getElementById('room-label').textContent = 'Room ' + room;
+  document.getElementById('room-label-2').textContent = room;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal').style.display = 'block';
+  renderAll();
+}
+
+document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('room-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pin-input').focus(); });
+
+function doLogout() {
+  currentRoom = '';
+  cart = {};
+  bookings = [];
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('room-input').value = '';
+  document.getElementById('pin-input').value = '';
+  updateCartBar();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.portal-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  renderTherapists();
+  renderMenu();
+  renderTours();
+}
+
+function renderTherapists() {
+  const grid = document.getElementById('therapist-grid');
+  grid.innerHTML = '';
+  therapists.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'therapist-card';
+    el.innerHTML = `
+      <div class="therapist-avatar">${t.emoji}</div>
+      <div class="therapist-name">${t.name}</div>
+      <div class="therapist-specialty">${t.specialty}</div>
+      <p class="therapist-bio">${t.bio}</p>
+      <div class="duration-options">
+        <div class="duration-btn" onclick="selectDuration('${t.id}','30 min',this)">
+          30 min
+          <span class="duration-price">$${t.prices['30 min']}</span>
+        </div>
+        <div class="duration-btn" onclick="selectDuration('${t.id}','60 min',this)">
+          60 min
+          <span class="duration-price">$${t.prices['60 min']}</span>
+        </div>
+      </div>
+      <button class="btn-book" onclick="openMassageModal('${t.id}')">Book This Therapist</button>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+let selectedDurations = {};
+function selectDuration(tid, dur, el) {
+  selectedDurations[tid] = dur;
+  const parent = el.closest('.duration-options');
+  parent.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function openMassageModal(tid) {
+  const t = therapists.find(x => x.id === tid);
+  const dur = selectedDurations[tid] || '60 min';
+  pendingBooking = { type: 'massage', therapist: t, duration: dur };
+
+  document.getElementById('modal-title').textContent = t.name;
+  document.getElementById('modal-sub').textContent = t.specialty + ' · Spa & Wellness';
+
+  const price = t.prices[dur];
+  document.getElementById('modal-body').innerHTML = `
+    <div style="margin-bottom:1.5rem; padding:1rem; background:rgba(122,170,134,0.08); border:1px solid rgba(122,170,134,0.15); border-radius:2px;">
+      <div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--sage);margin-bottom:0.3rem;">Selected</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--cream);">${dur} session · <span style="color:var(--gold)">$${price}</span></div>
+    </div>
+    <div class="modal-field">
+      <label>Preferred Date</label>
+      <input type="date" id="m-date" min="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="modal-field">
+      <label>Preferred Time</label>
+      <select id="m-time">
+        ${t.available.map(a => `<option>${a}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Special Requests (Optional)</label>
+      <textarea id="m-notes" placeholder="Allergies, pressure preference, focus areas..."></textarea>
+    </div>
+  `;
+  openModal();
+}
+
+function renderMenu() {
+  const container = document.getElementById('menu-container');
+  container.innerHTML = '';
+  Object.entries(menuItems).forEach(([cat, items]) => {
+    const sec = document.createElement('div');
+    sec.className = 'menu-category';
+    sec.innerHTML = `<div class="menu-category-title">${cat}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'menu-items';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'menu-item';
+      const key = item.name;
+      const qty = cart[key] || 0;
+      el.innerHTML = `
+        <div class="menu-item-emoji">${item.emoji}</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">${item.name}</div>
+          <div class="menu-item-desc">${item.desc}</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('${key}', -1)">−</button>
+            <span class="qty-display" id="qty-${key.replace(/[^a-z0-9]/gi,'')}">${qty}</span>
+            <button class="qty-btn" onclick="changeQty('${key}', 1)">+</button>
+          </div>
+        </div>
+        <div class="menu-item-price">$${item.price}</div>
+      `;
+      grid.appendChild(el);
+    });
+    sec.appendChild(grid);
+    container.appendChild(sec);
+  });
+}
+
+function changeQty(key, delta) {
+  cart[key] = Math.max(0, (cart[key] || 0) + delta);
+  if (cart[key] === 0) delete cart[key];
+  const safeKey = key.replace(/[^a-z0-9]/gi, '');
+  const el = document.getElementById('qty-' + safeKey);
+  if (el) el.textContent = cart[key] || 0;
+  updateCartBar();
+  document.getElementById('order-notes-wrap').style.display = Object.keys(cart).length ? 'block' : 'none';
+}
+
+function updateCartBar() {
+  const total = Object.entries(cart).reduce((sum, [k, qty]) => {
+    const allItems = Object.values(menuItems).flat();
+    const item = allItems.find(i => i.name === k);
+    return sum + (item ? item.price * qty : 0);
+  }, 0);
+  const count = Object.values(cart).reduce((a, b) => a + b, 0);
+  document.getElementById('cart-count').textContent = count;
+  document.getElementById('cart-total').textContent = '$' + total;
+  document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+}
+
+function openCartModal() {
+  const items = Object.entries(cart);
+  if (!items.length) return;
+  const allItems = Object.values(menuItems).flat();
+  const total = items.reduce((sum, [k, qty]) => {
+    const item = allItems.find(i => i.name === k);
+    return sum + (item ? item.price * qty : 0);
+  }, 0);
+
+  pendingBooking = { type: 'roomservice', items: {...cart}, total };
+  document.getElementById('modal-title').textContent = 'Room Service Order';
+  document.getElementById('modal-sub').textContent = 'Delivered to Room ' + currentRoom;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="margin-bottom:1rem;">
+      ${items.map(([k, qty]) => {
+        const item = allItems.find(i => i.name === k);
+        return `<div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(122,170,134,0.1);font-size:0.85rem;color:var(--cream);">
+          <span>${item?.emoji || ''} ${k} × ${qty}</span>
+          <span style="color:var(--gold)">$${(item?.price || 0) * qty}</span>
+        </div>`;
+      }).join('')}
+      <div style="display:flex;justify-content:space-between;padding:0.8rem 0;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);">
+        <span>Total</span><span style="color:var(--gold)">$${total}</span>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Delivery Notes</label>
+      <textarea id="rs-notes" placeholder="Leave at door, ring twice, allergies...">${document.getElementById('order-notes')?.value || ''}</textarea>
+    </div>
+  `;
+  openModal();
+}
+
+function placeRoomServiceOrder() { openCartModal(); }
+
+function renderTours() {
+  const grid = document.getElementById('tours-grid');
+  grid.innerHTML = '';
+  tours.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'tour-card';
+    el.innerHTML = `
+      <div class="tour-visual" style="background:${t.color}; font-size:4rem; display:flex; align-items:center; justify-content:center;">
+        ${t.emoji}
+        <div class="tour-badge">${t.badge}</div>
+      </div>
+      <div class="tour-body">
+        <div class="tour-name">${t.name}</div>
+        <div class="tour-meta">
+          <div class="tour-meta-item"><span>⏱</span>${t.duration}</div>
+          <div class="tour-meta-item"><span>🥾</span>${t.difficulty}</div>
+          <div class="tour-meta-item" style="color:var(--gold); font-family:'Cormorant Garamond',serif; font-size:1rem;">$${t.price} / person</div>
+        </div>
+        <p style="font-size:0.8rem;color:rgba(200,219,200,0.6);line-height:1.6;font-weight:300;margin-bottom:1rem;">${t.desc}</p>
+        <button class="btn-book" onclick="openTourModal('${t.id}')">Book This Tour</button>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+function openTourModal(tid) {
+  const t = tours.find(x => x.id === tid);
+  pendingBooking = { type: 'tour', tour: t };
+  document.getElementById('modal-title').textContent = t.name;
+  document.getElementById('modal-sub').textContent = t.duration + ' · ' + t.difficulty + ' · $' + t.price + '/person';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-field">
+      <label>Preferred Date</label>
+      <input type="date" id="tour-date" min="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="modal-field">
+      <label>Number of Guests</label>
+      <select id="tour-pax">
+        <option>1 person</option>
+        <option>2 people</option>
+        <option>3 people</option>
+        <option>4 people</option>
+        <option>5+ people</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Special Notes</label>
+      <textarea id="tour-notes" placeholder="Physical limitations, dietary needs for included meals..."></textarea>
+    </div>
+  `;
+  openModal();
+}
+
+// ============================================================
+// MODAL + BOOKING
+// ============================================================
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+function confirmBooking() {
+  const pb = pendingBooking;
+  let entry = {};
+
+  if (pb.type === 'massage') {
+    const date = document.getElementById('m-date')?.value;
+    const time = document.getElementById('m-time')?.value;
+    const notes = document.getElementById('m-notes')?.value;
+    if (!date) { alert('Please select a date.'); return; }
+    entry = {
+      type: 'Spa & Massage',
+      name: pb.therapist.name,
+      detail: pb.duration + ' · ' + date + ' at ' + time,
+      notes
+    };
+    showToast('Massage Booked!', pb.therapist.name + ' · ' + pb.duration);
+  } else if (pb.type === 'roomservice') {
+    entry = {
+      type: 'Room Service',
+      name: Object.keys(pb.items).length + ' items ordered',
+      detail: 'Total: $' + pb.total + ' · Room ' + currentRoom,
+      notes: document.getElementById('rs-notes')?.value
+    };
+    cart = {};
+    renderMenu();
+    updateCartBar();
+    document.getElementById('order-notes-wrap').style.display = 'none';
+    showToast('Order Placed!', 'Your items are on their way 🍃');
+  } else if (pb.type === 'tour') {
+    const date = document.getElementById('tour-date')?.value;
+    const pax = document.getElementById('tour-pax')?.value;
+    const notes = document.getElementById('tour-notes')?.value;
+    if (!date) { alert('Please select a date.'); return; }
+    entry = {
+      type: 'Tour',
+      name: pb.tour.name,
+      detail: date + ' · ' + pax,
+      notes
+    };
+    showToast('Tour Booked!', pb.tour.name + ' · ' + pax);
+  }
+
+  bookings.push(entry);
+  renderBookings();
+  closeModal();
+}
+
+function renderBookings() {
+  const c = document.getElementById('bookings-container');
+  if (!bookings.length) {
+    c.innerHTML = '<p style="color:rgba(200,219,200,0.4);font-size:0.85rem;font-style:italic;">No bookings yet — explore the menu above ✦</p>';
+    return;
+  }
+  c.innerHTML = '<div class="bookings-list">' + bookings.map(b => `
+    <div class="booking-item">
+      <div>
+        <div class="booking-type">${b.type}</div>
+        <div class="booking-name">${b.name}</div>
+        <div class="booking-detail">${b.detail}</div>
+        ${b.notes ? `<div class="booking-detail" style="font-style:italic;margin-top:0.2rem;">"${b.notes}"</div>` : ''}
+      </div>
+      <div class="booking-status">Confirmed</div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function showToast(title, msg) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
