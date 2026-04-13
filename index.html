@@ -967,9 +967,8 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         📬 Requests<span id="pending-dot" class="pending-dot" style="display:none;"></span>
       </div>
       <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
-      <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')" style="display:none;">🍽️ Restaurant</div>
-      <div class="admin-tab" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
-      <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Shifts</div>
+      <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')">🍽️ Restaurant</div>
+      <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Team</div>
       <div class="admin-tab" id="atab-rooms" onclick="switchAdminTab('rooms')">🏨 Rooms</div>
     </div>
   </div>
@@ -2361,7 +2360,6 @@ function showAdminPanel() {
   if (adminEl) adminEl.scrollTop = 0;
   // Hide staff tab for non-admins
   const isAdmin = currentUser.role === 'administrator';
-  document.getElementById('atab-staff').style.display = isAdmin ? '' : 'none';
   document.getElementById('atab-shifts').style.display = isAdmin ? '' : 'none';
   document.getElementById('atab-rooms').style.display = isAdmin ? '' : 'none';
   document.getElementById('atab-inbox').style.display = (isAdmin || currentUser.role === 'guest_management') ? '' : 'none';
