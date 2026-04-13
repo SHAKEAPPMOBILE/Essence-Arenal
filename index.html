@@ -937,14 +937,14 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
 <!-- ══ SCREEN: ADMIN PANEL ══ -->
 <div id="screen-admin" class="screen">
-  <header class="app-header">
-    <div class="app-logo">Essence <span>Arenal · Admin</span></div>
+  <header class="app-header" style="position:relative;">
+    <button class="abtn" onclick="adminLogout()">Exit</button>
+    <div class="app-logo" style="position:absolute;left:50%;transform:translateX(-50%);">Essence <span>Arenal · Admin</span></div>
     <div class="header-right calendar-header-right">
-      <span class="user-pill" id="user-pill"></span>
+      <span class="user-pill" id="user-pill" style="color:#fff;"></span>
       <button class="btn-ghost" id="btn-availability" onclick="openAvailabilityModal()" style="display:none">Disponibilidad</button>
       <button class="btn-ghost" onclick="openAuditModal()">Dashboard</button>
       <button class="btn-add-activity" onclick="openQuickAddModal()" title="Nueva actividad" aria-label="Nueva actividad">+</button>
-      <button class="abtn" onclick="adminLogout()">Exit</button>
     </div>
   </header>
 
@@ -2968,7 +2968,12 @@ function getCurrentUserEmail() { return currentUser?.email || 'desconocido'; }
 function isEditor() { return currentUser?.role === 'administrator' || ADMIN_EMAILS.includes(currentUser?.email || ''); }
 function updateAuthUI() {
   const pill = document.getElementById('user-pill');
-  if (pill) pill.textContent = `${isEditor() ? 'Editor' : 'Staff'} · ${getCurrentUserEmail()}`;
+  if (pill) {
+    const email = getCurrentUserEmail();
+    const raw = email.split('@')[0].split('.')[0];
+    const name = raw.charAt(0).toUpperCase() + raw.slice(1);
+    pill.textContent = `Staff · ${name}`;
+  }
   const btn = document.getElementById('btn-availability');
   if (btn) btn.style.display = isEditor() ? 'inline-flex' : 'none';
 }
