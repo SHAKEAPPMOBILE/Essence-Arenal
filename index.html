@@ -3409,6 +3409,10 @@ function buildTypeGrid() {
       buildTypeGrid();
       updateStaffDropdowns(true);
       refreshAssignmentWarning();
+      if (editingId === null) {
+        const typeDefaults = { 'cacao': '10:00', 'night': '17:30', 'bird': '05:30' };
+        if (typeDefaults[t.id]) setTimePickerValue(typeDefaults[t.id]);
+      }
     };
     grid.appendChild(chip);
   });
