@@ -3327,7 +3327,7 @@ function makePill(act) {
   const staffLine = [act.staff, act.by].filter(Boolean).join(', ');
   pill.innerHTML = `
     <span class="pill-time">${act.time || ''}${act.weekly ? ' 🔁' : ''}<span class="pill-location ${getSectionClass(act.section)}">${getSectionLabel(act.section)}</span></span>
-    <span class="pill-name">${type.emoji} ${type.name}${act.client ? ' · ' + act.client : ''}</span>
+    <span class="pill-name">${type.emoji} ${type.name}${act.client ? ' · ' + (() => { const ns = act.client.split(',').map(n => n.trim()).filter(Boolean); return ns.length > 1 ? ns[0] + ' & ...' : ns[0]; })() : ''}</span>
     ${staffLine ? `<span class="pill-staff">${staffLine}</span>` : ''}
     <button class="pill-del" title="Eliminar" data-activity-id="${act.id}">✕</button>
   `;
@@ -3441,7 +3441,8 @@ function openModal(act, dayIndex, slotId, dateStr) {
   selectedType = act ? act.type : 'yoga';
   if (!isEdit) buildTypeGrid();
   updateStaffDropdowns(false);
-  setTimePickerValue(act?.time || '07:00');
+  const slotDefaultTimes = { morning: '07:00', midday: '10:00', afternoon: '14:00', evening: '17:00' };
+  setTimePickerValue(isEdit ? (act?.time || '07:00') : (slotDefaultTimes[slotId] || '07:00'));
   document.getElementById('f-duration').value = act?.duration || '60';
   document.getElementById('f-section').value = act?.section || 'hotel';
   document.getElementById('f-client').value = isEdit ? '' : (act?.client || '');
