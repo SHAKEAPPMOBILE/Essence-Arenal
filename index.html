@@ -632,6 +632,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .cancel-activity-link:hover { color:#c0392b; }
 .shift-staff-card { background:#f0f4f0; border:1px solid rgba(26,46,26,0.15); border-radius:6px; padding:8px 14px; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; min-height:unset; }
 .shift-staff-card:hover { background:#e0ead0; border-color:var(--forest); }
+.shift-staff-card.selected { background:var(--forest); color:#fff; border-color:var(--forest); }
 .shift-role-chip { background:#f5f5f5; border:1px solid rgba(26,46,26,0.15); border-radius:999px; padding:6px 14px; font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif; min-height:unset; }
 .shift-role-chip:hover { background:#e8f0e8; border-color:var(--forest); }
 .shift-role-chip.selected { background:var(--forest); color:#fff; border-color:var(--forest); }
@@ -1198,36 +1199,29 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
 <!-- Shift Add Modal -->
 <div class="calendar-modal-overlay" id="shift-modal-overlay" onclick="if(event.target===this)closeShiftModal()">
-  <div class="calendar-modal" style="max-width:420px;">
+  <div class="calendar-modal" style="max-width:440px;">
     <div class="calendar-modal-header">
-      <div class="calendar-modal-title" id="shift-modal-title">Add Shift</div>
+      <div class="calendar-modal-title">Add Shift</div>
       <button class="calendar-modal-close" onclick="closeShiftModal()">✕</button>
     </div>
     <div class="calendar-modal-body">
-      <!-- Step 1: Pick staff -->
-      <div id="shift-step-1">
-        <div class="calendar-form-label" style="margin-bottom:10px;">Staff Member</div>
-        <div id="shift-staff-cards" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-      </div>
-      <!-- Step 2: Pick role + slot -->
-      <div id="shift-step-2" style="display:none;">
-        <div id="shift-selected-name" style="font-size:15px;font-weight:600;color:var(--forest);margin-bottom:14px;"></div>
-        <div class="calendar-form-label" style="margin-bottom:8px;">Role</div>
-        <div id="shift-role-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
-        <div id="shift-slot-picker" style="display:none;">
-          <div class="calendar-form-label" style="margin-bottom:6px;">Time Slot</div>
-          <select class="calendar-form-select" id="shift-slot-select">
-            <option value="morning">7–9 am</option>
-            <option value="midday">10–12 pm</option>
-            <option value="afternoon">2–5 pm</option>
-            <option value="evening">5–8 pm</option>
-          </select>
-        </div>
+      <div class="calendar-form-label" style="margin-bottom:8px;">Staff Member</div>
+      <div id="shift-staff-cards" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
+      <div class="calendar-form-label" style="margin-bottom:8px;">Role</div>
+      <div id="shift-role-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
+      <div id="shift-slot-picker">
+        <div class="calendar-form-label" style="margin-bottom:6px;">Time Slot</div>
+        <select class="calendar-form-select" id="shift-slot-select">
+          <option value="morning">7–9 am</option>
+          <option value="midday">10–12 pm</option>
+          <option value="afternoon">2–5 pm</option>
+          <option value="evening">5–8 pm</option>
+        </select>
       </div>
     </div>
     <div class="calendar-modal-footer">
       <button class="calendar-btn-cancel" onclick="closeShiftModal()">Cancelar</button>
-      <button class="calendar-btn-save" id="shift-save-btn" onclick="saveShift()" style="display:none;">Add Shift</button>
+      <button class="calendar-btn-save" onclick="saveShift()">Add Shift</button>
     </div>
   </div>
 </div>
@@ -3129,7 +3123,7 @@ function makeShiftPill(shift) {
   return pill;
 }
 
-const SHIFT_ROLES = ['Kitchen', 'Reception', 'Maintenance', 'Rooms'];
+const SHIFT_ROLES = ['Kitchen', 'Reception', 'Maintenance', 'Rooms', 'Guide', 'Spa'];
 let pendingShiftStaff = null;
 let pendingShiftRole = null;
 
@@ -3153,31 +3147,28 @@ function openShiftModal(dow, dateStr, slotId) {
   pendingShiftStaff = null;
   pendingShiftRole = null;
 
-  // Reset to step 1
-  document.getElementById('shift-step-1').style.display = '';
-  document.getElementById('shift-step-2').style.display = 'none';
-  document.getElementById('shift-save-btn').style.display = 'none';
-
-  const fallbackNames = ['Fabiola', 'Jesús', 'Johelin', 'Jairo', 'Alejandro', 'Aurelio'];
+  const fallbackNames = ['Aurelio', 'Jairo', 'Natacha', 'Faby', 'Jesus', 'Johelin'];
   const names = staffList.length ? staffList.map(s => s.name).filter(Boolean) : fallbackNames;
   document.getElementById('shift-staff-cards').innerHTML = names.map(name =>
-    `<button class="shift-staff-card" onclick="selectShiftStaff('${name.replace(/'/g, "\\'")}')">${name}</button>`
+    `<button class="shift-staff-card" id="sstaff-${name.replace(/\s+/g,'_')}" onclick="selectShiftStaff('${name.replace(/'/g,"\\'")}')">${name}</button>`
   ).join('');
+
+  document.getElementById('shift-role-chips').innerHTML = SHIFT_ROLES.map(role =>
+    `<button class="shift-role-chip" id="srole-${role}" onclick="selectShiftRole('${role}')">${role}</button>`
+  ).join('');
+
+  // Show slot picker only when no cell slot (opened from + button)
+  document.getElementById('shift-slot-picker').style.display = slotId ? 'none' : '';
+  if (slotId) document.getElementById('shift-slot-select').value = slotId;
 
   document.getElementById('shift-modal-overlay').classList.add('open');
 }
 
 function selectShiftStaff(name) {
   pendingShiftStaff = name;
-  document.getElementById('shift-step-1').style.display = 'none';
-  document.getElementById('shift-step-2').style.display = '';
-  document.getElementById('shift-selected-name').textContent = name;
-
-  document.getElementById('shift-role-chips').innerHTML = SHIFT_ROLES.map(role =>
-    `<button class="shift-role-chip" onclick="selectShiftRole('${role}')" id="srole-${role}">${role}</button>`
-  ).join('');
-
-  document.getElementById('shift-slot-picker').style.display = pendingShiftCell.slotId ? 'none' : '';
+  document.querySelectorAll('.shift-staff-card').forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById(`sstaff-${name.replace(/\s+/g,'_')}`);
+  if (el) el.classList.add('selected');
 }
 
 function selectShiftRole(role) {
@@ -3185,7 +3176,6 @@ function selectShiftRole(role) {
   document.querySelectorAll('.shift-role-chip').forEach(c => c.classList.remove('selected'));
   const el = document.getElementById(`srole-${role}`);
   if (el) el.classList.add('selected');
-  document.getElementById('shift-save-btn').style.display = '';
 }
 
 function closeShiftModal() {
@@ -3196,7 +3186,8 @@ function closeShiftModal() {
 }
 
 function saveShift() {
-  if (!pendingShiftStaff || !pendingShiftRole) return;
+  if (!pendingShiftStaff) { alert('Please select a staff member.'); return; }
+  if (!pendingShiftRole) { alert('Please select a role.'); return; }
   const slotId = pendingShiftCell.slotId || document.getElementById('shift-slot-select').value;
   shifts.push({ id: Date.now(), staffName: pendingShiftStaff, role: pendingShiftRole, dow: pendingShiftCell.dow, date: pendingShiftCell.dateStr, slotId });
   saveShifts();
