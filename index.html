@@ -630,6 +630,10 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   .calendar-admin-header { padding: 12px 14px; }
   .week-nav, .calendar-legend, .calendar-wrapper { padding-left: 14px; padding-right: 14px; }
   .calendar-header-right { gap: 8px; }
+  /* Mobile admin header: strip to Exit | Title | + only */
+  .app-header { min-height: 54px; padding: 10px 14px; }
+  .calendar-header-right .btn-ghost { display: none !important; }
+  #user-pill { display: none !important; }
 }
 @media (max-width: 600px) {
   .calendar-legend { padding-top: 10px; }
