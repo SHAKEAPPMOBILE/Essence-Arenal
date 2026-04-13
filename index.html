@@ -948,7 +948,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 <!-- ══ SCREEN: ADMIN PANEL ══ -->
 <div id="screen-admin" class="screen">
   <header class="app-header">
-    <button class="abtn" onclick="adminLogout()" aria-label="Exit"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    <button class="abtn" onclick="adminLogout()" aria-label="Exit"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1)"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
     <div class="app-logo">Essence <span>Arenal · Admin</span></div>
     <div class="header-right calendar-header-right">
       <span class="user-pill" id="user-pill" style="color:#fff;"></span>
@@ -965,7 +965,8 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     </div>
     <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
     <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')" style="display:none;">🍽️ Restaurant</div>
-    <div class="admin-tab" id="atab-staff" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
+    <div class="admin-tab" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
+    <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Shifts</div>
   </div>
 
   <!-- INBOX -->
@@ -1161,6 +1162,41 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div id="staff-list"><div class="inbox-empty"><span class="spinner"></span> Loading…</div></div>
     </div>
   </div>
+
+  <!-- SHIFTS -->
+  <div id="asec-shifts" class="admin-section">
+    <div class="week-nav">
+      <div class="week-label" id="shifts-week-label"></div>
+      <div class="week-btns">
+        <button class="nav-btn" onclick="changeShiftsWeek(-1)">‹</button>
+        <button class="btn-today" onclick="shiftsGoToday()">Hoy</button>
+        <button class="nav-btn" onclick="changeShiftsWeek(1)">›</button>
+      </div>
+    </div>
+    <div class="calendar-wrapper">
+      <div class="calendar-grid" id="shifts-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Shift Add Modal -->
+<div class="calendar-modal-overlay" id="shift-modal-overlay" onclick="if(event.target===this)closeShiftModal()">
+  <div class="calendar-modal" style="max-width:340px;">
+    <div class="calendar-modal-header">
+      <div class="calendar-modal-title">Add Shift</div>
+      <button class="calendar-modal-close" onclick="closeShiftModal()">✕</button>
+    </div>
+    <div class="calendar-modal-body">
+      <div class="calendar-form-group">
+        <label class="calendar-form-label">Staff Member</label>
+        <select class="calendar-form-select" id="shift-staff-select"><option value="">— select —</option></select>
+      </div>
+    </div>
+    <div class="calendar-modal-footer">
+      <button class="calendar-btn-cancel" onclick="closeShiftModal()">Cancelar</button>
+      <button class="calendar-btn-save" onclick="saveShift()">Add Shift</button>
+    </div>
+  </div>
 </div>
 
 <!-- RESTORED: Unified Calendar Activity Modal -->
@@ -1343,7 +1379,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const SUPABASE_URL = SUPA_URL;
 const SUPABASE_ANON_KEY = SUPA_KEY;
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const ADMIN_EMAILS = ['info@essencearenal.com', 'nbotefur@gmail.com'];
+const ADMIN_EMAILS = ['info@essencearenal.com', 'nbotefur@gmail.com', 'leoneltelesmeneses@gmail.com'];
 const RESTAURANT_REPLICA_EMAILS = ['info@essencearenal.com', 'nbotefur@gmail.com'];
 
 // Restaurant workflow data
@@ -1361,6 +1397,7 @@ let restaurantPosTickets = [];
 const EDITOR_EMAILS = [
   'info@essencearenal.com',
   'nbotefur@gmail.com',
+  'leoneltelesmeneses@gmail.com',
   'faby.1402@hotmail.com',
   'jesuslopezwolf0794@gmail.com',
   'johelinkamposm@gmail.com',
@@ -2309,9 +2346,11 @@ function showAdminPanel() {
   showScreen('screen-admin');
   // Hide staff tab for non-admins
   document.getElementById('atab-staff').style.display = currentUser.role === 'administrator' ? '' : 'none';
+  document.getElementById('atab-shifts').style.display = currentUser.role === 'administrator' ? '' : 'none';
   document.getElementById('atab-inbox').style.display = (currentUser.role === 'administrator' || currentUser.role === 'guest_management') ? '' : 'none';
   document.getElementById('atab-restaurant-soft').style.display = canViewRestaurantReplica() ? '' : 'none';
   loadData();
+  loadShifts();
   loadAvailability();
   loadAudit();
   updateAuthUI();
@@ -2362,6 +2401,7 @@ function switchAdminTab(tab) {
   if (tab === 'calendar') { renderAdminCalendar(); }
   if (tab === 'restaurant-soft') renderRestaurantReplica();
   if (tab === 'staff') renderStaffTable();
+  if (tab === 'shifts') renderShiftsCalendar();
 }
 
 function switchRestaurantTab(tab) {
@@ -2975,6 +3015,119 @@ function formatWeekLabel(start) {
 function changeWeek(delta) { weekOffset += delta; scheduleCalendarRender(); }
 function goToday() { weekOffset = 0; scheduleCalendarRender(); }
 function renderAdminCalendar() { scheduleCalendarRender(); }
+
+// ── SHIFTS ──────────────────────────────────────────────
+const SHIFTS_KEY = 'essense_shifts';
+let shifts = [];
+let shiftsWeekOffset = 0;
+let pendingShiftCell = null;
+
+function loadShifts() {
+  try { shifts = JSON.parse(localStorage.getItem(SHIFTS_KEY)) || []; } catch(e) { shifts = []; }
+}
+function saveShifts() { localStorage.setItem(SHIFTS_KEY, JSON.stringify(shifts)); }
+
+function changeShiftsWeek(delta) { shiftsWeekOffset += delta; renderShiftsCalendar(); }
+function shiftsGoToday() { shiftsWeekOffset = 0; renderShiftsCalendar(); }
+
+function renderShiftsCalendar() {
+  const weekStart = getWeekStart(shiftsWeekOffset);
+  const label = document.getElementById('shifts-week-label');
+  if (label) {
+    const end = new Date(weekStart); end.setDate(end.getDate() + 6);
+    label.textContent = weekStart.toLocaleDateString('es-CR', { day:'numeric', month:'short' }) + ' – ' + end.toLocaleDateString('es-CR', { day:'numeric', month:'short', year:'numeric' });
+  }
+  const grid = document.getElementById('shifts-grid');
+  if (!grid) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fragment = document.createDocumentFragment();
+  // Header row
+  const timeHeader = document.createElement('div');
+  timeHeader.className = 'col-header time-header';
+  fragment.appendChild(timeHeader);
+  for (let d = 0; d < 7; d++) {
+    const date = new Date(weekStart); date.setDate(date.getDate() + d);
+    const isToday = date.getTime() === today.getTime();
+    const div = document.createElement('div');
+    div.className = `col-header${isToday ? ' today-col' : ''}`;
+    div.innerHTML = `<span class="day-name">${DAYS_SHORT[d]}</span><span class="day-num">${date.getDate()}</span>`;
+    fragment.appendChild(div);
+  }
+  // Slot rows
+  TIME_SLOTS.forEach(slot => {
+    const timeLabel = document.createElement('div');
+    timeLabel.className = 'time-label';
+    timeLabel.innerHTML = `<span>${slot.label}</span>`;
+    fragment.appendChild(timeLabel);
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart); date.setDate(date.getDate() + d);
+      const dateStr = date.toISOString().split('T')[0];
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      // Render shift pills for this cell
+      shifts.filter(s => s.date === dateStr && s.slotId === slot.id).forEach(s => {
+        cell.appendChild(makeShiftPill(s));
+      });
+      // Add button
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn';
+      addBtn.textContent = '+';
+      addBtn.title = 'Add shift';
+      addBtn.dataset.dow = String(d);
+      addBtn.dataset.dateStr = dateStr;
+      addBtn.dataset.slotId = slot.id;
+      addBtn.onclick = (e) => {
+        e.stopPropagation();
+        openShiftModal(d, dateStr, slot.id);
+      };
+      cell.appendChild(addBtn);
+      fragment.appendChild(cell);
+    }
+  });
+  grid.replaceChildren(fragment);
+}
+
+function makeShiftPill(shift) {
+  const pill = document.createElement('div');
+  pill.className = 'activity-pill color-yoga';
+  pill.style.cssText = 'background:#e8f0ff;color:#1a3a6e;border-left-color:#4a6fa5;';
+  pill.innerHTML = `<span class="pill-name" style="font-size:11px;">${shift.staffName}</span>
+    <button class="pill-del" title="Remove" onclick="removeShift(${shift.id});event.stopPropagation();">✕</button>`;
+  return pill;
+}
+
+function openShiftModal(dow, dateStr, slotId) {
+  pendingShiftCell = { dow, dateStr, slotId };
+  const sel = document.getElementById('shift-staff-select');
+  sel.innerHTML = '<option value="">— select —</option>';
+  const names = staffList.length
+    ? staffList.map(s => s.name).filter(Boolean)
+    : Object.keys(STAFF_SPECIALTIES);
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  sel.value = '';
+  document.getElementById('shift-modal-overlay').classList.add('open');
+}
+function closeShiftModal() {
+  document.getElementById('shift-modal-overlay').classList.remove('open');
+  pendingShiftCell = null;
+}
+function saveShift() {
+  const name = document.getElementById('shift-staff-select').value;
+  if (!name) { alert('Please select a staff member.'); return; }
+  shifts.push({ id: Date.now(), staffName: name, dow: pendingShiftCell.dow, date: pendingShiftCell.dateStr, slotId: pendingShiftCell.slotId });
+  saveShifts();
+  closeShiftModal();
+  renderShiftsCalendar();
+}
+function removeShift(id) {
+  shifts = shifts.filter(s => s.id !== id);
+  saveShifts();
+  renderShiftsCalendar();
+}
 
 function getSectionLabel(section) { return section === 'finca' ? 'Finca' : 'Hotel'; }
 function getSectionClass(section) { return section === 'finca' ? 'location-finca' : 'location-hotel'; }
