@@ -1173,9 +1173,10 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         <div class="calendar-form-group">
           <label class="calendar-form-label">Hora inicio</label>
           <div style="display:flex;align-items:center;gap:6px;">
-            <select class="calendar-form-select" id="f-time-hour" style="max-width:110px;"></select>
+            <select class="calendar-form-select" id="f-time-hour" style="max-width:80px;"></select>
             <span style="color:var(--mid);">:</span>
-            <select class="calendar-form-select" id="f-time-minute" style="max-width:110px;"></select>
+            <select class="calendar-form-select" id="f-time-minute" style="max-width:80px;"></select>
+            <select class="calendar-form-select" id="f-time-period" style="max-width:70px;"></select>
           </div>
           <input type="hidden" id="f-time" value="07:00">
         </div>
@@ -3169,28 +3170,41 @@ function updateStaffDropdowns(preserveSelection = false) {
 }
 
 function syncTimePickerValue() {
-  const hour = document.getElementById('f-time-hour').value;
+  const h12 = parseInt(document.getElementById('f-time-hour').value, 10);
   const minute = document.getElementById('f-time-minute').value;
-  document.getElementById('f-time').value = `${hour}:${minute}`;
+  const period = document.getElementById('f-time-period').value;
+  let h24;
+  if (period === 'AM') {
+    h24 = h12 === 12 ? 0 : h12;
+  } else {
+    h24 = h12 === 12 ? 12 : h12 + 12;
+  }
+  document.getElementById('f-time').value = `${String(h24).padStart(2, '0')}:${minute}`;
 }
 function setTimePickerValue(timeValue = '07:00') {
   const [hRaw, mRaw] = (timeValue || '07:00').split(':');
-  const hour = String(Number(hRaw || '7')).padStart(2, '0');
-  const minute = String(Number(mRaw || '0')).padStart(2, '0');
-  document.getElementById('f-time-hour').value = hour;
-  document.getElementById('f-time-minute').value = ['00', '15', '30', '45'].includes(minute) ? minute : '00';
+  const h24 = Number(hRaw || '7');
+  const minute = ['00', '15', '30', '45'].includes(mRaw) ? mRaw : '00';
+  let h12, period;
+  if (h24 === 0)       { h12 = 12; period = 'AM'; }
+  else if (h24 < 12)   { h12 = h24; period = 'AM'; }
+  else if (h24 === 12) { h12 = 12; period = 'PM'; }
+  else                 { h12 = h24 - 12; period = 'PM'; }
+  document.getElementById('f-time-hour').value = String(h12);
+  document.getElementById('f-time-minute').value = minute;
+  document.getElementById('f-time-period').value = period;
   syncTimePickerValue();
 }
 function initTimePicker() {
   const hourSelect = document.getElementById('f-time-hour');
   const minuteSelect = document.getElementById('f-time-minute');
-  if (!hourSelect || !minuteSelect) return;
+  const periodSelect = document.getElementById('f-time-period');
+  if (!hourSelect || !minuteSelect || !periodSelect) return;
   hourSelect.innerHTML = '';
-  for (let h = 0; h < 24; h++) {
-    const hh = String(h).padStart(2, '0');
+  for (let h = 1; h <= 12; h++) {
     const option = document.createElement('option');
-    option.value = hh;
-    option.textContent = hh;
+    option.value = String(h);
+    option.textContent = String(h);
     hourSelect.appendChild(option);
   }
   minuteSelect.innerHTML = '';
@@ -3199,6 +3213,13 @@ function initTimePicker() {
     option.value = mm;
     option.textContent = mm;
     minuteSelect.appendChild(option);
+  });
+  periodSelect.innerHTML = '';
+  ['AM', 'PM'].forEach(p => {
+    const option = document.createElement('option');
+    option.value = p;
+    option.textContent = p;
+    periodSelect.appendChild(option);
   });
   setTimePickerValue('07:00');
 }
@@ -3649,10 +3670,12 @@ window.addEventListener('load', () => {
   const staffSelect = document.getElementById('f-staff');
   const timeHour = document.getElementById('f-time-hour');
   const timeMinute = document.getElementById('f-time-minute');
+  const timePeriod = document.getElementById('f-time-period');
   const weeklyToggle = document.getElementById('f-weekly');
   if (staffSelect) staffSelect.addEventListener('change', refreshAssignmentWarning);
   if (timeHour) timeHour.addEventListener('change', () => { syncTimePickerValue(); refreshAssignmentWarning(); });
   if (timeMinute) timeMinute.addEventListener('change', () => { syncTimePickerValue(); refreshAssignmentWarning(); });
+  if (timePeriod) timePeriod.addEventListener('change', () => { syncTimePickerValue(); refreshAssignmentWarning(); });
   if (weeklyToggle) weeklyToggle.addEventListener('change', refreshAssignmentWarning);
   // Pre-fill last used email
   const lastEmail = localStorage.getItem('essense_last_email');
