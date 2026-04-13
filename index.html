@@ -621,7 +621,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .calendar-modal-footer { padding:14px 22px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid rgba(26,46,26,0.12); background:var(--cream); }
 .calendar-btn-cancel { background:#fff; border:1px solid rgba(26,46,26,0.15); border-radius:4px; padding:9px 18px; font-size:13px; color:var(--mid); cursor:pointer; }
 .calendar-btn-save { background:var(--forest); border:none; border-radius:4px; padding:9px 22px; font-size:13px; color:var(--mist); cursor:pointer; font-weight:500; }
-.calendar-btn-delete { background:#c0392b; border:none; border-radius:4px; padding:9px 18px; font-size:13px; color:#fff; cursor:pointer; margin-right:auto; }
+.client-pills-container { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.client-pill-tag { display:inline-flex; align-items:center; gap:4px; background:rgba(26,46,26,0.07); border:1px solid rgba(26,46,26,0.15); border-radius:999px; padding:3px 8px 3px 10px; font-size:12px; color:var(--charcoal); }
+.client-pill-tag button { background:none; border:none; cursor:pointer; font-size:10px; color:var(--mid); padding:0; line-height:1; min-height:unset; }
+.client-pill-tag button:hover { color:#c0392b; }
+.cancel-activity-link { background:none; border:none; cursor:pointer; font-size:11px; color:var(--mid); text-decoration:underline; padding:6px 0 0; text-align:center; display:none; }
+.cancel-activity-link:hover { color:#c0392b; }
 .booking-info-grid { display:grid; gap:10px; }
 .booking-info-row { background:#fff; border:1px solid rgba(26,46,26,0.12); border-radius:6px; padding:8px 10px; }
 .booking-info-label { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mid); margin-bottom:3px; }
@@ -1202,7 +1207,8 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       </div>
       <div class="calendar-form-group">
         <label class="calendar-form-label">Cliente / grupo</label>
-        <input class="calendar-form-input" type="text" id="f-client" placeholder="Nombre del cliente o grupo">
+        <input class="calendar-form-input" type="text" id="f-client" placeholder="Nombre del cliente o grupo" autocomplete="new-password">
+        <div class="client-pills-container" id="client-pills"></div>
       </div>
       <div id="modal-section-staff" class="calendar-form-row">
         <div class="calendar-form-group">
@@ -1223,10 +1229,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         <label class="calendar-form-label"><input type="checkbox" id="f-weekly" style="margin-right:6px;">Repetir cada semana (actividad fija)</label>
       </div>
     </div>
-    <div class="calendar-modal-footer">
-      <button class="calendar-btn-delete" id="btn-delete" style="display:none" onclick="deleteActivity()">Eliminar</button>
-      <button class="calendar-btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="calendar-btn-save" onclick="saveActivity()">Guardar</button>
+    <div class="calendar-modal-footer" style="flex-direction:column;align-items:stretch;gap:0;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="calendar-btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="calendar-btn-save" id="btn-save" onclick="saveActivity()">Guardar</button>
+      </div>
+      <button class="cancel-activity-link" id="btn-delete" onclick="deleteActivity()">Cancel activity</button>
     </div>
   </div>
 </div>
@@ -3410,6 +3418,7 @@ function openModal(act, dayIndex, slotId, dateStr) {
   editingId = act ? act.id : null;
   pendingCell = act ? null : { dayIndex, slotId, dateStr };
   document.getElementById('modal-title').textContent = isEdit ? 'Editar actividad' : 'Nueva actividad';
+  document.getElementById('btn-save').textContent = isEdit ? 'Add' : 'Guardar';
   document.getElementById('btn-delete').style.display = isEdit ? 'block' : 'none';
 
   // Show/hide sections based on mode
@@ -3430,11 +3439,12 @@ function openModal(act, dayIndex, slotId, dateStr) {
   setTimePickerValue(act?.time || '07:00');
   document.getElementById('f-duration').value = act?.duration || '60';
   document.getElementById('f-section').value = act?.section || 'hotel';
-  document.getElementById('f-client').value = act?.client || '';
+  document.getElementById('f-client').value = isEdit ? '' : (act?.client || '');
   document.getElementById('f-staff').value = act?.staff || '';
   document.getElementById('f-by').value = act?.by || '';
   document.getElementById('f-notes').value = act?.notes || '';
   document.getElementById('f-weekly').checked = act ? !!act.weekly : false;
+  renderClientPills(isEdit ? act.id : null);
   if (!isEdit) refreshAssignmentWarning();
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -3450,7 +3460,13 @@ function saveActivity() {
   }
   const hour = parseInt(timeValue.split(':')[0], 10);
   const act = isEdit
-    ? { client: document.getElementById('f-client').value.trim() }
+    ? (() => {
+        const newName = document.getElementById('f-client').value.trim();
+        const existing = activities.find(a => a.id === editingId);
+        const names = (existing?.client || '').split(',').map(n => n.trim()).filter(Boolean);
+        if (newName) names.push(newName);
+        return { client: names.join(', ') };
+      })()
     : {
         type: selectedType,
         time: timeValue,
@@ -3494,6 +3510,28 @@ function deleteActivity() {
   if (removed) logAudit('eliminar', removed);
   saveData();
   closeModal();
+  scheduleCalendarRender();
+}
+
+function renderClientPills(actId) {
+  const container = document.getElementById('client-pills');
+  if (!container) return;
+  if (!actId) { container.innerHTML = ''; return; }
+  const act = activities.find(a => a.id === actId);
+  const names = (act?.client || '').split(',').map(n => n.trim()).filter(Boolean);
+  container.innerHTML = names.map((name, i) =>
+    `<span class="client-pill-tag">${name}<button onclick="removeClientName(${actId},${i})" aria-label="Eliminar">✕</button></span>`
+  ).join('');
+}
+
+function removeClientName(actId, index) {
+  const act = activities.find(a => a.id === actId);
+  if (!act) return;
+  const names = (act.client || '').split(',').map(n => n.trim()).filter(Boolean);
+  names.splice(index, 1);
+  act.client = names.join(', ');
+  saveData();
+  renderClientPills(actId);
   scheduleCalendarRender();
 }
 
