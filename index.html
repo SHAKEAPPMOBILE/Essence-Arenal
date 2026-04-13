@@ -248,7 +248,7 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 ══════════════════════════════════════ */
 #screen-admin { display:none; font-family:'DM Sans',sans-serif; background:#0e1a0e; min-height:100vh; }
 .app-header { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; background:#141e14; border-bottom:1px solid #2b3d2b; position:sticky; top:0; z-index:100; }
-.app-logo { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--admin-gold); letter-spacing:1px; }
+.app-logo { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--admin-gold); letter-spacing:1px; flex:1; text-align:center; }
 .app-logo span { color:var(--text-muted); font-size:12px; font-family:'DM Sans',sans-serif; font-weight:300; margin-left:8px; }
 .header-right { display:flex; align-items:center; gap:10px; }
 .role-pill { font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:50px; }
@@ -630,8 +630,8 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   .calendar-admin-header { padding: 12px 14px; }
   .week-nav, .calendar-legend, .calendar-wrapper { padding-left: 14px; padding-right: 14px; }
   .calendar-header-right { gap: 8px; }
-  /* Mobile admin header: strip to Exit | Title | + only */
-  .app-header { min-height: 54px; padding: 10px 14px; }
+  /* Mobile admin header: Exit | Title | + only, single compact row */
+  .app-header { padding: 10px 14px; max-height: 56px; overflow: hidden; }
   .calendar-header-right .btn-ghost { display: none !important; }
   #user-pill { display: none !important; }
 }
@@ -941,9 +941,9 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
 <!-- ══ SCREEN: ADMIN PANEL ══ -->
 <div id="screen-admin" class="screen">
-  <header class="app-header" style="position:relative;">
+  <header class="app-header">
     <button class="abtn" onclick="adminLogout()">Exit</button>
-    <div class="app-logo" style="position:absolute;left:50%;transform:translateX(-50%);">Essence <span>Arenal · Admin</span></div>
+    <div class="app-logo">Essence <span>Arenal · Admin</span></div>
     <div class="header-right calendar-header-right">
       <span class="user-pill" id="user-pill" style="color:#fff;"></span>
       <button class="btn-ghost" id="btn-availability" onclick="openAvailabilityModal()" style="display:none">Disponibilidad</button>
