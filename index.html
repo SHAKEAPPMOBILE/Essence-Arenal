@@ -2358,12 +2358,7 @@ function showAdminPanel() {
   showScreen('screen-admin');
   const adminEl = document.getElementById('screen-admin');
   if (adminEl) adminEl.scrollTop = 0;
-  // Hide staff tab for non-admins
-  const isAdmin = currentUser.role === 'administrator';
-  document.getElementById('atab-shifts').style.display = isAdmin ? '' : 'none';
-  document.getElementById('atab-rooms').style.display = isAdmin ? '' : 'none';
-  document.getElementById('atab-inbox').style.display = (isAdmin || currentUser.role === 'guest_management') ? '' : 'none';
-  document.getElementById('atab-restaurant-soft').style.display = isAdmin ? '' : 'none';
+  document.getElementById('atab-inbox').style.display = (currentUser.role === 'administrator' || currentUser.role === 'guest_management') ? '' : 'none';
   loadData();
   loadShifts();
   loadAvailability();
