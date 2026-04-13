@@ -246,7 +246,7 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 /* ══════════════════════════════════════
    ADMIN PANEL
 ══════════════════════════════════════ */
-#screen-admin { display:none; font-family:'DM Sans',sans-serif; background:#0e1a0e; min-height:100vh; height:100vh; overflow-y:auto; }
+#screen-admin { display:none; font-family:'DM Sans',sans-serif; background:#0e1a0e; min-height:100vh; height:100vh; overflow-y:scroll; scroll-padding-top:0; }
 .admin-sticky-top { position:sticky; top:0; z-index:100; }
 .app-header { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; background:#141e14; border-bottom:1px solid #2b3d2b; }
 .app-logo { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--admin-gold); letter-spacing:1px; flex:1; text-align:center; }
@@ -2347,6 +2347,8 @@ function stopRequestNotifications() {
 
 function showAdminPanel() {
   showScreen('screen-admin');
+  const adminEl = document.getElementById('screen-admin');
+  if (adminEl) adminEl.scrollTop = 0;
   // Hide staff tab for non-admins
   document.getElementById('atab-staff').style.display = currentUser.role === 'administrator' ? '' : 'none';
   document.getElementById('atab-shifts').style.display = currentUser.role === 'administrator' ? '' : 'none';
