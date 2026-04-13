@@ -3411,9 +3411,11 @@ function saveActivity() {
     alert('La hora debe usar intervalos de 15 minutos: 00, 15, 30 o 45.');
     return;
   }
+  const hour = parseInt(timeValue.split(':')[0], 10);
   const act = {
     type: selectedType,
     time: timeValue,
+    slot: getSlotIdForHour(hour),
     duration: parseInt(document.getElementById('f-duration').value, 10),
     section: document.getElementById('f-section').value,
     client: document.getElementById('f-client').value.trim(),
@@ -3435,7 +3437,6 @@ function saveActivity() {
   } else {
     act.id = Date.now();
     act.dow = pendingCell.dayIndex;
-    act.slot = pendingCell.slotId;
     act.date = pendingCell.dateStr;
     act.booking_request_id = null;
     activities.push(act);
