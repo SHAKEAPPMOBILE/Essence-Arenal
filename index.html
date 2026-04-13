@@ -247,7 +247,8 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
    ADMIN PANEL
 ══════════════════════════════════════ */
 #screen-admin { display:none; font-family:'DM Sans',sans-serif; background:#0e1a0e; min-height:100vh; height:100vh; overflow-y:auto; }
-.app-header { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; background:#141e14; border-bottom:1px solid #2b3d2b; position:sticky; top:0; z-index:100; }
+.admin-sticky-top { position:sticky; top:0; z-index:100; }
+.app-header { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; background:#141e14; border-bottom:1px solid #2b3d2b; }
 .app-logo { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--admin-gold); letter-spacing:1px; flex:1; text-align:center; }
 .app-logo span { color:var(--text-muted); font-size:12px; font-family:'DM Sans',sans-serif; font-weight:300; margin-left:8px; }
 .header-right { display:flex; align-items:center; gap:10px; }
@@ -947,26 +948,28 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
 <!-- ══ SCREEN: ADMIN PANEL ══ -->
 <div id="screen-admin" class="screen">
-  <header class="app-header">
-    <button class="abtn" onclick="adminLogout()" aria-label="Exit"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1)"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
-    <div class="app-logo">Essence <span>Arenal · Admin</span></div>
-    <div class="header-right calendar-header-right">
-      <span class="user-pill" id="user-pill" style="color:#fff;"></span>
-      <button class="btn-ghost" id="btn-availability" onclick="openAvailabilityModal()" style="display:none">Disponibilidad</button>
-      <button class="btn-ghost" onclick="openAuditModal()">Dashboard</button>
-      <button class="btn-add-activity" onclick="openQuickAddModal()" title="Nueva actividad" aria-label="Nueva actividad">+</button>
-    </div>
-  </header>
+  <div class="admin-sticky-top">
+    <header class="app-header">
+      <button class="abtn" onclick="adminLogout()" aria-label="Exit"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1)"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+      <div class="app-logo">Essence <span>Arenal · Admin</span></div>
+      <div class="header-right calendar-header-right">
+        <span class="user-pill" id="user-pill" style="color:#fff;"></span>
+        <button class="btn-ghost" id="btn-availability" onclick="openAvailabilityModal()" style="display:none">Disponibilidad</button>
+        <button class="btn-ghost" onclick="openAuditModal()">Dashboard</button>
+        <button class="btn-add-activity" onclick="openQuickAddModal()" title="Nueva actividad" aria-label="Nueva actividad">+</button>
+      </div>
+    </header>
 
-  <!-- Admin tabs -->
-  <div class="admin-tabs">
-    <div class="admin-tab active" id="atab-inbox" onclick="switchAdminTab('inbox')">
-      📬 Requests<span id="pending-dot" class="pending-dot" style="display:none;"></span>
+    <!-- Admin tabs -->
+    <div class="admin-tabs">
+      <div class="admin-tab active" id="atab-inbox" onclick="switchAdminTab('inbox')">
+        📬 Requests<span id="pending-dot" class="pending-dot" style="display:none;"></span>
+      </div>
+      <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
+      <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')" style="display:none;">🍽️ Restaurant</div>
+      <div class="admin-tab" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
+      <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Shifts</div>
     </div>
-    <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
-    <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')" style="display:none;">🍽️ Restaurant</div>
-    <div class="admin-tab" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
-    <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Shifts</div>
   </div>
 
   <!-- INBOX -->
