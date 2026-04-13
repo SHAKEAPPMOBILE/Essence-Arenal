@@ -1205,7 +1205,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <button class="calendar-modal-close" onclick="closeShiftModal()">✕</button>
     </div>
     <div class="calendar-modal-body">
-      <div class="calendar-form-label" style="margin-bottom:8px;">Staff Member</div>
       <div id="shift-staff-cards" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
       <div class="calendar-form-label" style="margin-bottom:8px;">Role</div>
       <div id="shift-role-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
@@ -3123,7 +3122,7 @@ function makeShiftPill(shift) {
   return pill;
 }
 
-const SHIFT_ROLES = ['Kitchen', 'Reception', 'Maintenance', 'Rooms', 'Guide', 'Spa'];
+const SHIFT_ROLES = ['Kitchen', 'Reception', 'Restaurant', 'Maintenance', 'Rooms', 'Guide', 'Spa'];
 let pendingShiftStaff = null;
 let pendingShiftRole = null;
 
@@ -3147,10 +3146,20 @@ function openShiftModal(dow, dateStr, slotId) {
   pendingShiftStaff = null;
   pendingShiftRole = null;
 
-  const fallbackNames = ['Aurelio', 'Jairo', 'Natacha', 'Faby', 'Jesus', 'Johelin'];
-  const names = staffList.length ? staffList.map(s => s.name).filter(Boolean) : fallbackNames;
-  document.getElementById('shift-staff-cards').innerHTML = names.map(name =>
-    `<button class="shift-staff-card" id="sstaff-${name.replace(/\s+/g,'_')}" onclick="selectShiftStaff('${name.replace(/'/g,"\\'")}')">${name}</button>`
+  const fallbackStaff = [
+    { name: 'Natacha', defaultRole: 'Rooms' },
+    { name: 'Faby', defaultRole: 'Reception' },
+    { name: 'Jesus', defaultRole: 'Reception' },
+    { name: 'Johelin', defaultRole: 'Restaurant' },
+  ];
+  const staffItems = staffList.length
+    ? staffList.map(s => ({ name: s.name, defaultRole: s.role || '' })).filter(s => s.name)
+    : fallbackStaff;
+  document.getElementById('shift-staff-cards').innerHTML = staffItems.map(s =>
+    `<button class="shift-staff-card" id="sstaff-${s.name.replace(/\s+/g,'_')}" onclick="selectShiftStaff('${s.name.replace(/'/g,"\\'")}','${s.defaultRole}')">
+      <span style="display:block;font-weight:600;font-size:13px;">${s.name}</span>
+      ${s.defaultRole ? `<span style="display:block;font-size:10px;opacity:.65;margin-top:2px;">${s.defaultRole}</span>` : ''}
+    </button>`
   ).join('');
 
   document.getElementById('shift-role-chips').innerHTML = SHIFT_ROLES.map(role =>
@@ -3164,11 +3173,12 @@ function openShiftModal(dow, dateStr, slotId) {
   document.getElementById('shift-modal-overlay').classList.add('open');
 }
 
-function selectShiftStaff(name) {
+function selectShiftStaff(name, defaultRole) {
   pendingShiftStaff = name;
   document.querySelectorAll('.shift-staff-card').forEach(c => c.classList.remove('selected'));
   const el = document.getElementById(`sstaff-${name.replace(/\s+/g,'_')}`);
   if (el) el.classList.add('selected');
+  if (defaultRole) selectShiftRole(defaultRole);
 }
 
 function selectShiftRole(role) {
