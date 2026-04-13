@@ -1165,11 +1165,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <button class="calendar-modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="calendar-modal-body">
-      <div class="calendar-form-group">
+      <div id="modal-activity-label" style="display:none;font-size:18px;font-weight:600;color:var(--forest);margin-bottom:16px;"></div>
+      <div id="modal-section-type" class="calendar-form-group">
         <div class="calendar-form-label">Tipo de actividad</div>
         <div class="calendar-type-grid" id="type-grid"></div>
       </div>
-      <div class="calendar-form-row">
+      <div id="modal-section-time-duration" class="calendar-form-row">
         <div class="calendar-form-group">
           <label class="calendar-form-label">Hora inicio</label>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -1192,7 +1193,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
           </select>
         </div>
       </div>
-      <div class="calendar-form-group">
+      <div id="modal-section-location" class="calendar-form-group">
         <label class="calendar-form-label">Ubicación</label>
         <select class="calendar-form-select" id="f-section">
           <option value="hotel">Hotel</option>
@@ -1203,7 +1204,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         <label class="calendar-form-label">Cliente / grupo</label>
         <input class="calendar-form-input" type="text" id="f-client" placeholder="Nombre del cliente o grupo">
       </div>
-      <div class="calendar-form-row">
+      <div id="modal-section-staff" class="calendar-form-row">
         <div class="calendar-form-group">
           <label class="calendar-form-label">Guía / Terapeuta</label>
           <select class="calendar-form-select" id="f-staff"><option value="">— sin asignar —</option></select>
@@ -1213,12 +1214,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
           <select class="calendar-form-select" id="f-by"><option value="">— ninguno —</option></select>
         </div>
       </div>
-      <div class="calendar-assignment-warning" id="assignment-warning"></div>
-      <div class="calendar-form-group">
+      <div id="assignment-warning" class="calendar-assignment-warning"></div>
+      <div id="modal-section-notes" class="calendar-form-group">
         <label class="calendar-form-label">Notas</label>
         <input class="calendar-form-input" type="text" id="f-notes" placeholder="Observaciones opcionales">
       </div>
-      <div class="calendar-form-group">
+      <div id="modal-section-weekly" class="calendar-form-group">
         <label class="calendar-form-label"><input type="checkbox" id="f-weekly" style="margin-right:6px;">Repetir cada semana (actividad fija)</label>
       </div>
     </div>
@@ -3405,12 +3406,26 @@ function buildTypeGrid() {
 }
 
 function openModal(act, dayIndex, slotId, dateStr) {
+  const isEdit = act !== null;
   editingId = act ? act.id : null;
   pendingCell = act ? null : { dayIndex, slotId, dateStr };
-  document.getElementById('modal-title').textContent = act ? 'Editar actividad' : 'Nueva actividad';
-  document.getElementById('btn-delete').style.display = act ? 'block' : 'none';
+  document.getElementById('modal-title').textContent = isEdit ? 'Editar actividad' : 'Nueva actividad';
+  document.getElementById('btn-delete').style.display = isEdit ? 'block' : 'none';
+
+  // Show/hide sections based on mode
+  const createOnlySections = ['modal-section-type', 'modal-section-time-duration', 'modal-section-location', 'modal-section-staff', 'assignment-warning', 'modal-section-notes', 'modal-section-weekly'];
+  createOnlySections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isEdit ? 'none' : '';
+  });
+  const nameLabel = document.getElementById('modal-activity-label');
+  if (nameLabel) {
+    nameLabel.textContent = isEdit ? getTypeNameById(act.type) : '';
+    nameLabel.style.display = isEdit ? 'block' : 'none';
+  }
+
   selectedType = act ? act.type : 'yoga';
-  buildTypeGrid();
+  if (!isEdit) buildTypeGrid();
   updateStaffDropdowns(false);
   setTimePickerValue(act?.time || '07:00');
   document.getElementById('f-duration').value = act?.duration || '60';
@@ -3420,40 +3435,44 @@ function openModal(act, dayIndex, slotId, dateStr) {
   document.getElementById('f-by').value = act?.by || '';
   document.getElementById('f-notes').value = act?.notes || '';
   document.getElementById('f-weekly').checked = act ? !!act.weekly : false;
-  refreshAssignmentWarning();
+  if (!isEdit) refreshAssignmentWarning();
   document.getElementById('modal-overlay').classList.add('open');
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 
 function saveActivity() {
+  const isEdit = editingId !== null;
   const timeValue = document.getElementById('f-time').value;
-  if (!/^\d{2}:(00|15|30|45)$/.test(timeValue)) {
+  if (!isEdit && !/^\d{2}:(00|15|30|45)$/.test(timeValue)) {
     alert('La hora debe usar intervalos de 15 minutos: 00, 15, 30 o 45.');
     return;
   }
   const hour = parseInt(timeValue.split(':')[0], 10);
-  const act = {
-    type: selectedType,
-    time: timeValue,
-    slot: getSlotIdForHour(hour),
-    duration: parseInt(document.getElementById('f-duration').value, 10),
-    section: document.getElementById('f-section').value,
-    client: document.getElementById('f-client').value.trim(),
-    staff: document.getElementById('f-staff').value,
-    by: document.getElementById('f-by').value,
-    notes: document.getElementById('f-notes').value.trim(),
-    weekly: document.getElementById('f-weekly').checked,
-  };
-  const validationDate = resolveModalDateStr();
-  const availabilityCheck = validateAssignmentAvailability(act.staff, validationDate, act.time, act.type);
-  if (!availabilityCheck.ok && !confirm(`Aviso de disponibilidad:\n\n${availabilityCheck.reason}\n\n¿Deseas guardar de todas formas?`)) return;
-  if (editingId !== null) {
+  const act = isEdit
+    ? { client: document.getElementById('f-client').value.trim() }
+    : {
+        type: selectedType,
+        time: timeValue,
+        slot: getSlotIdForHour(hour),
+        duration: parseInt(document.getElementById('f-duration').value, 10),
+        section: document.getElementById('f-section').value,
+        client: document.getElementById('f-client').value.trim(),
+        staff: document.getElementById('f-staff').value,
+        by: document.getElementById('f-by').value,
+        notes: document.getElementById('f-notes').value.trim(),
+        weekly: document.getElementById('f-weekly').checked,
+      };
+  if (!isEdit) {
+    const validationDate = resolveModalDateStr();
+    const availabilityCheck = validateAssignmentAvailability(act.staff, validationDate, act.time, act.type);
+    if (!availabilityCheck.ok && !confirm(`Aviso de disponibilidad:\n\n${availabilityCheck.reason}\n\n¿Deseas guardar de todas formas?`)) return;
+  }
+  if (isEdit) {
     const idx = activities.findIndex(a => a.id === editingId);
     if (idx > -1) {
-      const before = { ...activities[idx] };
       Object.assign(activities[idx], act);
-      logAudit('editar', activities[idx], `${getTypeNameById(before.type)} → ${getTypeNameById(activities[idx].type)}`);
+      logAudit('editar', activities[idx], getTypeNameById(activities[idx].type));
     }
   } else {
     act.id = Date.now();
