@@ -970,6 +970,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')" style="display:none;">🍽️ Restaurant</div>
       <div class="admin-tab" id="atab-staff" onclick="switchAdminTab('staff')">👥 Staff</div>
       <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Shifts</div>
+      <div class="admin-tab" id="atab-rooms" onclick="switchAdminTab('rooms')">🏨 Rooms</div>
     </div>
   </div>
 
@@ -1179,6 +1180,14 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     </div>
     <div class="calendar-wrapper">
       <div class="calendar-grid" id="shifts-grid"></div>
+    </div>
+  </div>
+
+  <!-- ROOMS -->
+  <div id="asec-rooms" class="admin-section">
+    <div style="padding:2rem;text-align:center;color:var(--text-muted);">
+      <h2>Rooms</h2>
+      <p>Cloudbeds integration coming soon</p>
     </div>
   </div>
 </div>
@@ -2351,10 +2360,12 @@ function showAdminPanel() {
   const adminEl = document.getElementById('screen-admin');
   if (adminEl) adminEl.scrollTop = 0;
   // Hide staff tab for non-admins
-  document.getElementById('atab-staff').style.display = currentUser.role === 'administrator' ? '' : 'none';
-  document.getElementById('atab-shifts').style.display = currentUser.role === 'administrator' ? '' : 'none';
-  document.getElementById('atab-inbox').style.display = (currentUser.role === 'administrator' || currentUser.role === 'guest_management') ? '' : 'none';
-  document.getElementById('atab-restaurant-soft').style.display = canViewRestaurantReplica() ? '' : 'none';
+  const isAdmin = currentUser.role === 'administrator';
+  document.getElementById('atab-staff').style.display = isAdmin ? '' : 'none';
+  document.getElementById('atab-shifts').style.display = isAdmin ? '' : 'none';
+  document.getElementById('atab-rooms').style.display = isAdmin ? '' : 'none';
+  document.getElementById('atab-inbox').style.display = (isAdmin || currentUser.role === 'guest_management') ? '' : 'none';
+  document.getElementById('atab-restaurant-soft').style.display = isAdmin ? '' : 'none';
   loadData();
   loadShifts();
   loadAvailability();
@@ -2408,7 +2419,9 @@ function switchAdminTab(tab) {
   if (tab === 'restaurant-soft') renderRestaurantReplica();
   if (tab === 'staff') renderStaffTable();
   if (tab === 'shifts') renderShiftsCalendar();
+  // 'rooms' needs no render call — static placeholder
 }
+
 
 function switchRestaurantTab(tab) {
   document.querySelectorAll('.restaurant-tab').forEach(t => t.classList.remove('active'));
