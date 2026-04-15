@@ -2076,6 +2076,15 @@ const PRODUCT_ITEMS = [
 ];
 let productCart = [];
 
+function formatServicePrice(price, sub) {
+  if (!price || !String(price).includes(' / ')) return price;
+  const durMatch = String(sub || '').match(/(\d+)\s+or\s+(\d+)\s*min/i);
+  if (!durMatch) return price;
+  const parts = String(price).split(' / ');
+  if (parts.length !== 2) return price;
+  return `${durMatch[1]} min — ${parts[0].trim()} · ${durMatch[2]} min — ${parts[1].trim()}`;
+}
+
 function renderGuestServices() {
   renderSpaCategories();
   renderTourGrid();
@@ -2139,7 +2148,7 @@ function selectSpaCategory(catId) {
           <div class="svc-grid-name">${ls.name}</div>
           <div class="svc-grid-sub">${ls.sub}</div>
           <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${ls.desc}</div>
-          <div class="svc-grid-price">${s.price}</div>
+          <div class="svc-grid-price">${formatServicePrice(s.price, s.sub)}</div>
           <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${cat.label}')">${tr('bookBtn')}</button>
         </div>`;
       }).join('')}
@@ -2201,7 +2210,7 @@ function _refreshCarouselCard(id) {
         <button class="carousel-arrow" onclick="carouselNext('${id}')">&#8250;</button>
       </div>
       <div class="carousel-desc">${ls.desc || s.desc}</div>
-      <div class="carousel-price">${s.price}</div>
+      <div class="carousel-price">${formatServicePrice(s.price, s.sub)}</div>
     </div>`;
   const dotsEl = document.getElementById(`${id}-dots`);
   if (dotsEl) dotsEl.innerHTML = d.services.map((_, i) =>
