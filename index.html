@@ -784,6 +784,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <button class="nav-tab" id="tab-room" onclick="showGuestTab('room')">🍃 Room Service</button>
     <button class="nav-tab" id="tab-tours" onclick="showGuestTab('tours')">🌋 Tours</button>
     <button class="nav-tab" id="tab-bookings" onclick="showGuestTab('bookings')">📋 My Bookings</button>
+    <button class="nav-tab" id="tab-mycal" onclick="showGuestTab('mycal')">📅 My Calendar</button>
   </nav>
   <div class="portal-body">
 
@@ -842,6 +843,15 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <h3 class="orders-sub-title" id="orders-products-title">Product Orders</h3>
       <div id="my-products-list"></div>
     </div>
+  </div>
+
+  <!-- MY CALENDAR -->
+  <div id="guest-mycal" class="portal-section">
+    <div class="section-header">
+      <h2 id="mycal-header-title">My <em>Calendar</em></h2>
+      <p id="mycal-header-sub">Your confirmed activity bookings</p>
+    </div>
+    <div id="guest-mycal-list"></div>
   </div>
 
   </div><!-- /.portal-body -->
@@ -981,33 +991,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="modal-title" id="bm-step3-title">Your Details</div>
       <div class="field-group"><label id="bm-step3-room-label" for="bm-room">Room Number</label><input type="text" id="bm-room" required placeholder="e.g. 12"></div>
       <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="First name"></div>
-      <div class="field-group">
-        <label><span id="bm-label-whatsapp">WhatsApp</span> <span id="bm-whatsapp-note" style="color:rgba(122,170,134,0.5);font-size:.55rem;">· optional · for booking confirmations</span></label>
-        <div style="display:flex;gap:0;border:1px solid rgba(122,170,134,0.2);border-radius:12px;overflow:hidden;">
-          <select id="bm-phone-code" style="background:rgba(255,255,255,0.06);border:none;border-right:1px solid rgba(122,170,134,0.2);padding:.85rem .8rem;color:var(--cream);font-family:'Jost',sans-serif;font-size:.9rem;font-weight:300;outline:none;cursor:pointer;width:105px;flex-shrink:0;">
-            <option value="506">🇨🇷 +506</option>
-            <option value="1">🇺🇸 +1</option>
-            <option value="52">🇲🇽 +52</option>
-            <option value="57">🇨🇴 +57</option>
-            <option value="34">🇪🇸 +34</option>
-            <option value="44">🇬🇧 +44</option>
-            <option value="49">🇩🇪 +49</option>
-            <option value="33">🇫🇷 +33</option>
-            <option value="39">🇮🇹 +39</option>
-            <option value="31">🇳🇱 +31</option>
-            <option value="55">🇧🇷 +55</option>
-            <option value="54">🇦🇷 +54</option>
-            <option value="56">🇨🇱 +56</option>
-            <option value="51">🇵🇪 +51</option>
-            <option value="61">🇦🇺 +61</option>
-            <option value="81">🇯🇵 +81</option>
-            <option value="86">🇨🇳 +86</option>
-            <option value="91">🇮🇳 +91</option>
-          </select>
-          <input type="tel" id="bm-phone" placeholder="8888 7777"
-            style="flex:1;background:rgba(255,255,255,0.04);border:none;padding:.85rem 1rem;color:var(--cream);font-family:'Jost',sans-serif;font-size:.95rem;font-weight:300;outline:none;">
-        </div>
-      </div>
       <div class="modal-actions" style="justify-content:space-between;">
         <button class="btn-ghost" id="bm-step3-back" onclick="bmGoStep3Back()">← Back</button>
         <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Request</button>
@@ -1578,7 +1561,7 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Areas to avoid', intakeAreasPlaceholder: 'e.g. lower back, knees',
     intakeGoalsLabel: 'Treatment goals', intakeGoalsPlaceholder: 'e.g. relaxation, muscle tension relief',
     step3Title: 'Your Details', step3RoomLabel: 'Room Number', step3NameLabel: 'Your Name',
-    labelWhatsapp: 'WhatsApp', whatsappNote: 'optional · for booking confirmations', phonePlaceholder: '8888 7777'
+    myCalTab: '📅 My Calendar', myCalHeaderTitle: 'My <em>Calendar</em>', myCalHeaderSub: 'Your confirmed activity bookings'
   },
   es: {
     exit: '← SALIR', spaTab: '🌺 Spa & Masajes', roomTab: '🍃 Productos', toursTab: '🌋 Tours', bookingsTab: '📋 Mis Pedidos',
@@ -1612,7 +1595,7 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Zonas a evitar', intakeAreasPlaceholder: 'ej. zona lumbar, rodillas',
     intakeGoalsLabel: 'Objetivos del tratamiento', intakeGoalsPlaceholder: 'ej. relajación, alivio de tensión muscular',
     step3Title: 'Tus Datos', step3RoomLabel: 'Número de Cuarto', step3NameLabel: 'Tu Nombre',
-    labelWhatsapp: 'WhatsApp', whatsappNote: 'opcional · para confirmaciones de reserva', phonePlaceholder: '8888 7777'
+    myCalTab: '📅 Mi Calendario', myCalHeaderTitle: 'Mi <em>Calendario</em>', myCalHeaderSub: 'Tus reservas de actividades confirmadas'
   },
   fr: {
     exit: '← SORTIR', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Produits', toursTab: '🌋 Excursions', bookingsTab: '📋 Mes Commandes',
@@ -1646,7 +1629,7 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Zones à éviter', intakeAreasPlaceholder: 'ex. bas du dos, genoux',
     intakeGoalsLabel: 'Objectifs du soin', intakeGoalsPlaceholder: 'ex. relaxation, soulagement des tensions musculaires',
     step3Title: 'Vos Coordonnées', step3RoomLabel: 'Numéro de Chambre', step3NameLabel: 'Votre Nom',
-    labelWhatsapp: 'WhatsApp', whatsappNote: 'facultatif · pour les confirmations', phonePlaceholder: '8888 7777'
+    myCalTab: '📅 Mon Calendrier', myCalHeaderTitle: 'Mon <em>Calendrier</em>', myCalHeaderSub: 'Vos réservations d\'activités confirmées'
   }
 };
 
@@ -1789,6 +1772,7 @@ function applyGuestLanguage() {
     ['tab-room', tr('roomTab')],
     ['tab-tours', tr('toursTab')],
     ['tab-bookings', tr('bookingsTab')],
+    ['tab-mycal', tr('myCalTab')],
     ['bm-label-date', tr('preferredDate')],
     ['bm-label-time', tr('preferredTime')],
     ['bm-label-notes', tr('specialRequests')],
@@ -1824,8 +1808,6 @@ function applyGuestLanguage() {
     ['bm-step3-title', tr('step3Title')],
     ['bm-step3-room-label', tr('step3RoomLabel')],
     ['bm-step3-name-label', tr('step3NameLabel')],
-    ['bm-label-whatsapp', tr('labelWhatsapp')],
-    ['bm-whatsapp-note', '· ' + tr('whatsappNote')],
     ['bm-step3-back', tr('back')]
   ];
   mapText.forEach(([id, value]) => {
@@ -1839,14 +1821,12 @@ function applyGuestLanguage() {
   const notesEl = document.getElementById('bm-notes');
   const areasEl = document.getElementById('bm-areas-avoid');
   const goalsEl = document.getElementById('bm-goals');
-  const phoneEl = document.getElementById('bm-phone');
   if (roomEl) roomEl.placeholder = tr('roomPlaceholder');
   if (nameEl) nameEl.placeholder = tr('namePlaceholder');
   if (emailEl) emailEl.placeholder = tr('emailPlaceholder');
   if (notesEl) notesEl.placeholder = tr('notesPlaceholder');
   if (areasEl) areasEl.placeholder = tr('intakeAreasPlaceholder');
   if (goalsEl) goalsEl.placeholder = tr('intakeGoalsPlaceholder');
-  if (phoneEl) phoneEl.placeholder = tr('phonePlaceholder');
   // Update all yn-btn Yes/No labels
   document.querySelectorAll('.yn-btn[data-val="yes"]').forEach(b => { b.textContent = tr('btnYes'); });
   document.querySelectorAll('.yn-btn[data-val="no"]').forEach(b => { b.textContent = tr('btnNo'); });
@@ -1870,6 +1850,10 @@ function applyGuestLanguage() {
   if (toursSub) toursSub.textContent = tr('toursHeaderSub');
   if (bookingsTitle) bookingsTitle.innerHTML = tr('bookingsHeaderTitle');
   if (bookingsSub) bookingsSub.textContent = tr('bookingsHeaderSub');
+  const myCalTitle = document.getElementById('mycal-header-title');
+  const myCalSub = document.getElementById('mycal-header-sub');
+  if (myCalTitle) myCalTitle.innerHTML = tr('myCalHeaderTitle');
+  if (myCalSub) myCalSub.textContent = tr('myCalHeaderSub');
   const spaOrderTitle = document.getElementById('orders-spa-title');
   const productsOrderTitle = document.getElementById('orders-products-title');
   if (spaOrderTitle) spaOrderTitle.textContent = tr('myBookingsSect');
@@ -1933,6 +1917,43 @@ function showGuestTab(tab) {
   if (tab === 'tours') renderTourGrid();
   if (tab === 'room') renderProductGrid();
   if (tab === 'bookings') loadMyBookings();
+  if (tab === 'mycal') loadGuestCalendar();
+}
+
+function loadGuestCalendar() {
+  const listEl = document.getElementById('guest-mycal-list');
+  if (!listEl) return;
+  if (!guestSession) { listEl.innerHTML = '<div class="orders-empty-state">Please log in to view your calendar.</div>'; return; }
+  try {
+    const raw = localStorage.getItem('essence_arenal_calendar_v1');
+    const all = raw ? JSON.parse(raw) : [];
+    const mine = all.filter(a =>
+      a.source === 'guest_booking' &&
+      String(a.room || '').toLowerCase() === String(guestSession.room || '').toLowerCase() &&
+      String(a.guestName || '').toLowerCase() === String(guestSession.name || '').toLowerCase()
+    );
+    if (mine.length === 0) {
+      listEl.innerHTML = '<div class="orders-empty-state">No confirmed activity bookings yet.</div>';
+      return;
+    }
+    mine.sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.time || '').localeCompare(b.time || ''));
+    const typeEmoji = { soundbath:'🔔', temazcal:'🔥', night:'🌙', bird:'🦜', cacao:'🍫' };
+    listEl.innerHTML = mine.map(a => {
+      const emoji = typeEmoji[a.type] || '📅';
+      const dateLabel = a.date ? new Date(a.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
+      const timeLabel = a.time || '';
+      return `<div class="booking-item">
+        <div class="booking-info">
+          <div class="bi-name">${emoji} ${a.serviceName || a.client || ''}</div>
+          <div class="bi-detail">${dateLabel}${timeLabel ? ' · ' + timeLabel : ''}</div>
+          ${a.notes ? `<div class="bi-detail" style="margin-top:4px;font-style:italic;">"${a.notes}"</div>` : ''}
+        </div>
+        <div><span class="status-badge status-confirmed">confirmed</span></div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div class="orders-empty-state">Could not load calendar.</div>';
+  }
 }
 
 // Services data
@@ -2349,9 +2370,6 @@ async function submitBooking() {
   // Read new required fields
   const room = document.getElementById('bm-room').value.trim();
   const name = document.getElementById('bm-name').value.trim();
-  const phoneNumber = document.getElementById('bm-phone')?.value.trim() || '';
-  const phoneCode = document.getElementById('bm-phone-code')?.value || '';
-  const fullPhone = phoneNumber ? phoneCode + phoneNumber.replace(/[^0-9]/g,'') : null;
   if (!room || !name) {
     showToast('Room number and name are required.');
     return;
@@ -2388,15 +2406,67 @@ async function submitBooking() {
     intake_form: intakeData ? JSON.stringify(intakeData) : null,
     price: parseFloat((service.price || '$0').replace('$','')) || null,
     status: 'pending',
-    guest_phone: fullPhone || null
+    guest_phone: null
   };
   try {
     await notifyStaffWhatsApp(body);
+    autoAddToAdminCalendar(body);
     closeBookingModal();
     showToast('✓ Request sent! We\'ll confirm shortly.');
     loadMyBookings();
   } catch(e) {
     showToast('Could not send request. Please try again.');
+  }
+}
+
+// Auto-create calendar event for 5 bookable activities
+const GUEST_CALENDAR_ACTIVITIES = {
+  'sound bath': 'soundbath',
+  'temazcal': 'temazcal',
+  'temascal': 'temazcal',
+  'night tour': 'night',
+  'bird watch': 'bird',
+  'bird watching': 'bird',
+  'cacao': 'cacao',
+  'cacau': 'cacao',
+};
+function autoAddToAdminCalendar(req) {
+  const nameLower = (req.service_name || '').toLowerCase();
+  let calType = null;
+  for (const [key, val] of Object.entries(GUEST_CALENDAR_ACTIVITIES)) {
+    if (nameLower.includes(key)) { calType = val; break; }
+  }
+  if (!calType) return;
+  try {
+    const raw = localStorage.getItem('essence_arenal_calendar_v1');
+    const calActivities = raw ? JSON.parse(raw) : [];
+    const dateStr = req.requested_date || new Date().toISOString().split('T')[0];
+    const timeValue = req.requested_time || '10:00';
+    const hour = parseInt(timeValue.split(':')[0], 10);
+    const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
+    calActivities.push({
+      id: Date.now() + Math.random(),
+      section: ['night', 'bird', 'cacao'].includes(calType) ? 'finca' : 'hotel',
+      dow: new Date(`${dateStr}T00:00:00`).getDay(),
+      slot: slotId,
+      date: dateStr,
+      type: calType,
+      time: timeValue,
+      duration: req.duration_minutes || 60,
+      client: `${req.service_name} — ${req.guest_name}`,
+      staff: '',
+      by: '',
+      notes: req.notes || '',
+      weekly: false,
+      source: 'guest_booking',
+      status: 'confirmed',
+      serviceName: req.service_name || '',
+      guestName: req.guest_name || '',
+      room: req.room || '',
+    });
+    localStorage.setItem('essence_arenal_calendar_v1', JSON.stringify(calActivities));
+  } catch(e) {
+    console.warn('[auto-calendar]', e);
   }
 }
 
