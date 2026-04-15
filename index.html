@@ -787,7 +787,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <button class="nav-tab" id="tab-room" onclick="showGuestTab('room')">🍃 Room Service</button>
     <button class="nav-tab" id="tab-tours" onclick="showGuestTab('tours')">🌋 Tours</button>
     <button class="nav-tab" id="tab-bookings" onclick="showGuestTab('bookings')">📋 My Bookings</button>
-    <button class="nav-tab" id="tab-mycal" onclick="showGuestTab('mycal')">📅 My Calendar</button>
   </nav>
   <div class="portal-body">
 
@@ -848,24 +847,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     </div>
   </div>
 
-  <!-- MY CALENDAR -->
-  <div id="guest-mycal" class="portal-section" style="padding:0;">
-    <div class="week-nav">
-      <div class="week-label" id="guest-cal-week-label"></div>
-      <div class="week-btns">
-        <button class="nav-btn" onclick="changeGuestCalWeek(-1)">‹</button>
-        <button class="btn-today" onclick="guestCalToday()">HOY</button>
-        <button class="nav-btn" onclick="changeGuestCalWeek(1)">›</button>
-      </div>
-    </div>
-    <div class="calendar-legend">
-      <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--hotel-color)"></span>Hotel</span>
-      <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--finca-color)"></span>Finca</span>
-    </div>
-    <div class="calendar-wrapper">
-      <div class="calendar-grid" id="guest-cal-grid"></div>
-    </div>
-  </div>
 
   </div><!-- /.portal-body -->
 </div>
@@ -1574,7 +1555,8 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Areas to avoid', intakeAreasPlaceholder: 'e.g. lower back, knees',
     intakeGoalsLabel: 'Treatment goals', intakeGoalsPlaceholder: 'e.g. relaxation, muscle tension relief',
     step3Title: 'Your Details', step3RoomLabel: 'Room Number', step3NameLabel: 'Your Name',
-    myCalTab: '📅 My Calendar', myCalHeaderTitle: 'My <em>Calendar</em>', myCalHeaderSub: 'Your confirmed activity bookings'
+    myCalTab: '📅 My Calendar', myCalHeaderTitle: 'My <em>Calendar</em>', myCalHeaderSub: 'Your confirmed activity bookings',
+    catCalendar: 'Calendar', catCalendarSub: 'Activities & Schedule'
   },
   es: {
     exit: '← SALIR', spaTab: '🌺 Spa & Masajes', roomTab: '🍃 Productos', toursTab: '🌋 Tours', bookingsTab: '📋 Mis Pedidos',
@@ -1608,7 +1590,8 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Zonas a evitar', intakeAreasPlaceholder: 'ej. zona lumbar, rodillas',
     intakeGoalsLabel: 'Objetivos del tratamiento', intakeGoalsPlaceholder: 'ej. relajación, alivio de tensión muscular',
     step3Title: 'Tus Datos', step3RoomLabel: 'Número de Cuarto', step3NameLabel: 'Tu Nombre',
-    myCalTab: '📅 Mi Calendario', myCalHeaderTitle: 'Mi <em>Calendario</em>', myCalHeaderSub: 'Tus reservas de actividades confirmadas'
+    myCalTab: '📅 Mi Calendario', myCalHeaderTitle: 'Mi <em>Calendario</em>', myCalHeaderSub: 'Tus reservas de actividades confirmadas',
+    catCalendar: 'Calendario', catCalendarSub: 'Actividades & Horario'
   },
   fr: {
     exit: '← SORTIR', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Produits', toursTab: '🌋 Excursions', bookingsTab: '📋 Mes Commandes',
@@ -1642,7 +1625,8 @@ const GUEST_I18N = {
     intakeAreasLabel: 'Zones à éviter', intakeAreasPlaceholder: 'ex. bas du dos, genoux',
     intakeGoalsLabel: 'Objectifs du soin', intakeGoalsPlaceholder: 'ex. relaxation, soulagement des tensions musculaires',
     step3Title: 'Vos Coordonnées', step3RoomLabel: 'Numéro de Chambre', step3NameLabel: 'Votre Nom',
-    myCalTab: '📅 Mon Calendrier', myCalHeaderTitle: 'Mon <em>Calendrier</em>', myCalHeaderSub: 'Vos réservations d\'activités confirmées'
+    myCalTab: '📅 Mon Calendrier', myCalHeaderTitle: 'Mon <em>Calendrier</em>', myCalHeaderSub: 'Vos réservations d\'activités confirmées',
+    catCalendar: 'Calendrier', catCalendarSub: 'Activités & Programme'
   }
 };
 
@@ -1785,7 +1769,6 @@ function applyGuestLanguage() {
     ['tab-room', tr('roomTab')],
     ['tab-tours', tr('toursTab')],
     ['tab-bookings', tr('bookingsTab')],
-    ['tab-mycal', tr('myCalTab')],
     ['bm-label-date', tr('preferredDate')],
     ['bm-label-time', tr('preferredTime')],
     ['bm-label-notes', tr('specialRequests')],
@@ -1930,7 +1913,6 @@ function showGuestTab(tab) {
   if (tab === 'tours') renderTourGrid();
   if (tab === 'room') renderProductGrid();
   if (tab === 'bookings') loadMyBookings();
-  if (tab === 'mycal') renderGuestCalendar();
 }
 
 let guestCalWeekOffset = 0;
@@ -1956,7 +1938,7 @@ function renderGuestCalendar() {
   let calActivities = [];
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
-    calActivities = (raw ? JSON.parse(raw) : []).filter(a => a.source === 'guest_booking');
+    calActivities = raw ? JSON.parse(raw) : [];
   } catch(e) { calActivities = []; }
 
   const activityMap = new Map();
@@ -2103,6 +2085,7 @@ function renderSpaCategories() {
     { id:'cat-therapies', icon:'🌟', nameKey:'catTherapies', subKey:'catTherapiesSub' },
     { id:'cat-massages',  icon:'🤲', nameKey:'catMassages',  subKey:'catMassagesSub' },
     { id:'cat-beauty',    icon:'💆', nameKey:'catBeauty',    subKey:'catBeautySub' },
+    { id:'cat-calendar',  icon:'📅', nameKey:'catCalendar',  subKey:'catCalendarSub' },
   ];
   c.innerHTML = `
     <div class="cat-grid">
@@ -2117,6 +2100,7 @@ function renderSpaCategories() {
 }
 
 function selectSpaCategory(catId) {
+  if (catId === 'cat-calendar') { showSpaCalendar(); return; }
   const catMap = {
     'cat-therapies': { services: THERAPIES_SERVICES, label: tr('catTherapies') },
     'cat-massages':  { services: MASSAGES_SERVICES,  label: tr('catMassages') },
@@ -2156,6 +2140,31 @@ function carouselNext(id) {
 function carouselGoto(id, i) {
   const d = carouselData[id]; if (!d) return;
   d.idx = i; d.refresh();
+}
+
+function showSpaCalendar() {
+  const c = document.getElementById('spa-cards');
+  if (!c) return;
+  c.innerHTML = `
+    <div class="svc-back-bar"><button class="spa-back-btn" onclick="renderSpaCategories()">${tr('back')}</button></div>
+    <div style="margin-top:8px;">
+      <div class="week-nav" style="border-radius:8px 8px 0 0;">
+        <div class="week-label" id="guest-cal-week-label"></div>
+        <div class="week-btns">
+          <button class="nav-btn" onclick="changeGuestCalWeek(-1)">‹</button>
+          <button class="btn-today" onclick="guestCalToday()">HOY</button>
+          <button class="nav-btn" onclick="changeGuestCalWeek(1)">›</button>
+        </div>
+      </div>
+      <div class="calendar-legend">
+        <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--hotel-color)"></span>Hotel</span>
+        <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--finca-color)"></span>Finca</span>
+      </div>
+      <div class="calendar-wrapper" style="padding:0 0 24px;">
+        <div class="calendar-grid" id="guest-cal-grid"></div>
+      </div>
+    </div>`;
+  renderGuestCalendar();
 }
 
 function _refreshCarouselCard(id) {
