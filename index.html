@@ -2073,7 +2073,7 @@ function formatServicePrice(price, sub) {
   if (!durMatch) return price;
   const parts = String(price).split(' / ');
   if (parts.length !== 2) return price;
-  return `${durMatch[1]} min — ${parts[0].trim()} · ${durMatch[2]} min — ${parts[1].trim()}`;
+  return `<div>${durMatch[1]} min — ${parts[0].trim()}</div><div>${durMatch[2]} min — ${parts[1].trim()}</div>`;
 }
 
 function renderGuestServices() {
