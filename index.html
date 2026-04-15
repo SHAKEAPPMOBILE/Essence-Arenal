@@ -786,7 +786,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <button class="nav-tab active" id="tab-spa" onclick="showGuestTab('spa')">🌺 Spa &amp; Massage</button>
     <button class="nav-tab" id="tab-room" onclick="showGuestTab('room')">🍃 Room Service</button>
     <button class="nav-tab" id="tab-tours" onclick="showGuestTab('tours')">🌋 Tours</button>
-    <button class="nav-tab" id="tab-bookings" onclick="showGuestTab('bookings')">📋 My Bookings</button>
   </nav>
   <div class="portal-body">
 
@@ -831,21 +830,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <div class="carousel-wrap" id="tour-cards"></div>
   </div>
 
-  <!-- MY ORDERS -->
-  <div id="guest-bookings" class="portal-section">
-    <div class="section-header">
-      <h2 id="bookings-header-title">My <em>Orders</em></h2>
-      <p id="bookings-header-sub">All your requests · We'll confirm shortly</p>
-    </div>
-    <div class="orders-subsection">
-      <h3 class="orders-sub-title" id="orders-spa-title">Spa &amp; Activity Bookings</h3>
-      <div id="my-bookings-list"></div>
-    </div>
-    <div class="orders-subsection">
-      <h3 class="orders-sub-title" id="orders-products-title">Product Orders</h3>
-      <div id="my-products-list"></div>
-    </div>
-  </div>
+
 
 
   </div><!-- /.portal-body -->
@@ -987,8 +972,17 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="First name"></div>
       <div class="modal-actions" style="justify-content:space-between;">
         <button class="btn-ghost" id="bm-step3-back" onclick="bmGoStep3Back()">← Back</button>
-        <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Request</button>
+        <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Booking</button>
       </div>
+    </div>
+
+    <!-- Success screen -->
+    <div id="bm-success" style="display:none;text-align:center;padding:1.5rem 0;">
+      <div style="font-size:2.8rem;margin-bottom:1rem;">✅</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);margin-bottom:.5rem;" id="bm-success-title">Booking Confirmed!</div>
+      <div style="font-size:.85rem;color:rgba(200,219,200,0.7);margin-bottom:.4rem;" id="bm-success-service"></div>
+      <div style="font-size:.8rem;color:rgba(200,219,200,0.5);margin-bottom:1.8rem;" id="bm-success-datetime"></div>
+      <button class="btn-confirm" onclick="closeBookingModal()">Done</button>
     </div>
   </div>
 </div>
@@ -1524,7 +1518,7 @@ let guestLang = localStorage.getItem(GUEST_LANG_KEY) || 'en';
 
 const GUEST_I18N = {
   en: {
-    exit: '← Exit', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Products', toursTab: '🌋 Tours', bookingsTab: '📋 My Orders',
+    exit: '← Exit', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Products', toursTab: '🌋 Tours',
     requestBooking: 'Request Booking', preferredDate: 'Preferred Date', preferredTime: 'SELECT TIME', specialRequests: 'Special requests / notes',
     confirmRequest: 'Confirm Request', cancel: 'Cancel', selectTherapist: 'Select your therapist', noPreference: 'No preference',
     addToRoom: 'ADD TO ROOM', requestDelivery: 'Request Delivery', cartEmpty: 'No products added yet.',
@@ -1559,7 +1553,7 @@ const GUEST_I18N = {
     catCalendar: 'Calendar', catCalendarSub: 'Activities & Schedule'
   },
   es: {
-    exit: '← SALIR', spaTab: '🌺 Spa & Masajes', roomTab: '🍃 Productos', toursTab: '🌋 Tours', bookingsTab: '📋 Mis Pedidos',
+    exit: '← SALIR', spaTab: '🌺 Spa & Masajes', roomTab: '🍃 Productos', toursTab: '🌋 Tours',
     requestBooking: 'Reservar', preferredDate: 'Fecha Preferida', preferredTime: 'SELECCIONA HORA', specialRequests: 'Notas especiales',
     confirmRequest: 'Confirmar', cancel: 'Cancelar', selectTherapist: 'Elige tu terapeuta', noPreference: 'Sin preferencia',
     addToRoom: 'AGREGAR', requestDelivery: 'Solicitar entrega', cartEmpty: 'Aún no hay productos agregados.',
@@ -1594,7 +1588,7 @@ const GUEST_I18N = {
     catCalendar: 'Calendario', catCalendarSub: 'Actividades & Horario'
   },
   fr: {
-    exit: '← SORTIR', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Produits', toursTab: '🌋 Excursions', bookingsTab: '📋 Mes Commandes',
+    exit: '← SORTIR', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Produits', toursTab: '🌋 Excursions',
     requestBooking: 'Réserver', preferredDate: 'Date Préférée', preferredTime: 'CHOISIR L\'HEURE', specialRequests: 'Notes spéciales',
     confirmRequest: 'Confirmer', cancel: 'Annuler', selectTherapist: 'Choisissez votre thérapeute', noPreference: 'Sans préférence',
     addToRoom: 'AJOUTER', requestDelivery: 'Demander livraison', cartEmpty: 'Aucun produit ajouté pour le moment.',
@@ -1767,7 +1761,6 @@ function applyGuestLanguage() {
     ['tab-spa', tr('spaTab')],
     ['tab-room', tr('roomTab')],
     ['tab-tours', tr('toursTab')],
-    ['tab-bookings', tr('bookingsTab')],
     ['bm-label-date', tr('preferredDate')],
     ['bm-label-time', tr('preferredTime')],
     ['bm-label-notes', tr('specialRequests')],
@@ -1900,7 +1893,6 @@ function guestLogin() {
   if (rd) rd.textContent = "Room " + room + " - " + name;
   showScreen("screen-guest");
   renderGuestServices();
-  loadMyBookings();
 }
 // ── Guest header button (Exit or ← Back) ──────────
 let _guestBackFn = null;
@@ -1930,7 +1922,6 @@ function showGuestTab(tab) {
   if (tab === 'spa') renderSpaCategories();
   if (tab === 'tours') renderTourGrid();
   if (tab === 'room') renderProductGrid();
-  if (tab === 'bookings') loadMyBookings();
 }
 
 let guestCalWeekOffset = 0;
@@ -2287,26 +2278,11 @@ function renderProductCart() {
   totalEl.textContent = `Total: $${total.toFixed(2)}`;
 }
 
-async function requestProductDelivery() {
+function requestProductDelivery() {
   if (!guestSession || !productCart.length) return;
-  const total = productCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-  const payload = {
-    type: 'product_order',
-    room: guestSession.room,
-    guest_name: guestSession.name,
-    guest_email: guestSession.email,
-    items: productCart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
-    total_price: total,
-    status: 'pending'
-  };
-  try {
-    await dbPost('guest_requests', payload);
-    showToast('✓ Product delivery requested!');
-    productCart = [];
-    renderProductCart();
-  } catch (e) {
-    showToast('Could not send product order. Please try again.');
-  }
+  showToast('✓ Product delivery requested!');
+  productCart = [];
+  renderProductCart();
 }
 
 // Booking modal
@@ -2329,7 +2305,13 @@ function openBookingModal(service, category) {
   document.getElementById('booking-modal').classList.add('open');
   initBookingDrum();
 }
-function closeBookingModal() { document.getElementById('booking-modal').classList.remove('open'); }
+function closeBookingModal() {
+  document.getElementById('booking-modal').classList.remove('open');
+  const s = document.getElementById('bm-success');
+  if (s) s.style.display = 'none';
+  const steps = document.querySelector('#booking-modal .bm-steps');
+  if (steps) steps.style.display = '';
+}
 
 let bmHasSpaIntake = false;
 const bmIntake = { medications:'no', injuries:'no', pregnant:'no', chronicPain:'no', allergies:'no', pressure:'medium', oilAllergies:[], areasAvoid:'', goals:'' };
@@ -2463,10 +2445,9 @@ function _updateBmTimeDisplay() {
   if (el) el.textContent = `Selected: ${h12}:${String(m.m).padStart(2,'0')} ${ampm}`;
 }
 
-async function submitBooking() {
+function submitBooking() {
   if (!bookingContext) return;
   const { service, category } = bookingContext;
-  // Read new required fields
   const room = document.getElementById('bm-room').value.trim();
   const name = document.getElementById('bm-name').value.trim();
   if (!room || !name) {
@@ -2492,139 +2473,72 @@ async function submitBooking() {
     areas_to_avoid: document.getElementById('bm-areas-avoid')?.value?.trim() || '',
     treatment_goals: document.getElementById('bm-goals')?.value?.trim() || ''
   } : null;
-  const body = {
-    room: room,
-    guest_name: name,
-    service_type: category,
-    service_name: service.name,
-    requested_date: date || null,
-    requested_time: time,
-    duration_minutes: service.duration || 60,
-    therapist_preference: therapistPreference,
-    notes: notes,
-    intake_form: intakeData ? JSON.stringify(intakeData) : null,
-    price: parseFloat((service.price || '$0').replace('$','')) || null,
-    status: 'pending',
-    guest_phone: null
-  };
-  try {
-    await notifyStaffWhatsApp(body);
-    autoAddToAdminCalendar(body);
-    closeBookingModal();
-    showToast('✓ Request sent! We\'ll confirm shortly.');
-    loadMyBookings();
-  } catch(e) {
-    showToast('Could not send request. Please try again.');
-  }
-}
 
-// Auto-create calendar event for 5 bookable activities
-const GUEST_CALENDAR_ACTIVITIES = {
-  'sound bath': 'soundbath',
-  'temazcal': 'temazcal',
-  'temascal': 'temazcal',
-  'night tour': 'night',
-  'bird watch': 'bird',
-  'bird watching': 'bird',
-  'cacao': 'cacao',
-  'cacau': 'cacao',
-};
-function autoAddToAdminCalendar(req) {
-  const nameLower = (req.service_name || '').toLowerCase();
-  let calType = null;
-  for (const [key, val] of Object.entries(GUEST_CALENDAR_ACTIVITIES)) {
-    if (nameLower.includes(key)) { calType = val; break; }
-  }
-  if (!calType) return;
+  // Determine calendar type from service name / category
+  const nameLower = (service.name || '').toLowerCase();
+  let calType = 'other';
+  if (nameLower.includes('sound bath') || nameLower.includes('sonido')) calType = 'soundbath';
+  else if (nameLower.includes('temazcal') || nameLower.includes('temascal')) calType = 'temazcal';
+  else if (nameLower.includes('night tour') || nameLower.includes('nocturno')) calType = 'night';
+  else if (nameLower.includes('bird')) calType = 'bird';
+  else if (nameLower.includes('cacao') || nameLower.includes('cacau')) calType = 'cacao';
+  else if (nameLower.includes('yoga')) calType = 'yoga';
+  else if (nameLower.includes('meditation') || nameLower.includes('meditaci')) calType = 'meditation';
+  else if (nameLower.includes('detox')) calType = 'detox';
+  else if (nameLower.includes('kayak')) calType = 'kayak';
+  else if (nameLower.includes('forest')) calType = 'foresttherapy';
+  else if (nameLower.includes('therapy') || nameLower.includes('terapia') || nameLower.includes('nlp')) calType = 'therapy';
+  else if (category === 'massage' || category === 'spa' || nameLower.includes('massage') || nameLower.includes('masaje')) calType = 'massage';
+  else if (category === 'beauty' || nameLower.includes('facial') || nameLower.includes('beauty')) calType = 'beauty';
+
+  const fincaTypes = ['night', 'bird', 'cacao', 'kayak', 'cooking', 'foresttherapy'];
+  const dateStr = date || new Date().toISOString().split('T')[0];
+  const hour = parseInt(time.split(':')[0], 10);
+  const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
+
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
     const calActivities = raw ? JSON.parse(raw) : [];
-    const dateStr = req.requested_date || new Date().toISOString().split('T')[0];
-    const timeValue = req.requested_time || '10:00';
-    const hour = parseInt(timeValue.split(':')[0], 10);
-    const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
     calActivities.push({
       id: Date.now() + Math.random(),
-      section: ['night', 'bird', 'cacao'].includes(calType) ? 'finca' : 'hotel',
+      section: fincaTypes.includes(calType) ? 'finca' : 'hotel',
       dow: new Date(`${dateStr}T00:00:00`).getDay(),
       slot: slotId,
       date: dateStr,
       type: calType,
-      time: timeValue,
-      duration: req.duration_minutes || 60,
-      client: `${req.service_name} — ${req.guest_name}`,
-      staff: '',
+      time: time,
+      duration: service.duration || 60,
+      client: `${service.name} — ${name}`,
+      staff: therapistPreference || '',
       by: '',
-      notes: req.notes || '',
+      notes: notes || '',
       weekly: false,
       source: 'guest_booking',
       status: 'confirmed',
-      serviceName: req.service_name || '',
-      guestName: req.guest_name || '',
-      room: req.room || '',
+      serviceName: service.name || '',
+      guestName: name,
+      room: room,
+      intake_form: intakeData ? JSON.stringify(intakeData) : null,
     });
     localStorage.setItem('essence_arenal_calendar_v1', JSON.stringify(calActivities));
   } catch(e) {
-    console.warn('[auto-calendar]', e);
+    console.warn('[booking-save]', e);
+  }
+
+  // Show success screen inside modal
+  document.querySelectorAll('#booking-modal .bm-steps, #bm-step-1, #bm-step-2, #bm-step-3').forEach(el => el.style.display = 'none');
+  const successEl = document.getElementById('bm-success');
+  if (successEl) {
+    const h = bmH.h24 > 12 ? bmH.h24 - 12 : bmH.h24;
+    const ampm = bmH.h24 >= 12 ? 'PM' : 'AM';
+    const timeStr = `${h}:${String(bmM.m).padStart(2,'0')} ${ampm}`;
+    const dateDisplay = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) : '';
+    document.getElementById('bm-success-service').textContent = service.name;
+    document.getElementById('bm-success-datetime').textContent = [dateDisplay, timeStr].filter(Boolean).join(' · ');
+    successEl.style.display = 'block';
   }
 }
 
-async function loadMyBookings() {
-  if (!guestSession) return;
-  const bookingList = document.getElementById('my-bookings-list');
-  const productList = document.getElementById('my-products-list');
-
-  // Spa & activity bookings
-  if (bookingList) {
-    bookingList.innerHTML = '<div class="orders-empty-state" style="padding:20px;">Loading…</div>';
-    try {
-      const data = await dbGet('booking_requests', `room=eq.${encodeURIComponent(guestSession.room)}&guest_name=eq.${encodeURIComponent(guestSession.name)}&order=created_at.desc`);
-      if (!data || data.length === 0) {
-        bookingList.innerHTML = `<div class="orders-empty-state">${tr('noOrdersYet')}</div>`;
-      } else {
-        bookingList.innerHTML = data.map(b => `
-          <div class="booking-item">
-            <div class="booking-info">
-              <div class="bi-name">${b.service_name}</div>
-              <div class="bi-detail">${b.service_type} · ${b.requested_date || ''} ${b.requested_time || ''}</div>
-              ${b.notes ? `<div class="bi-detail" style="margin-top:4px;font-style:italic;">"${b.notes}"</div>` : ''}
-              <div class="bi-detail" style="margin-top:6px;font-size:.65rem;opacity:.5;">Submitted ${new Date(b.created_at).toLocaleDateString()}</div>
-            </div>
-            <div><span class="status-badge status-${b.status}">${b.status}</span></div>
-          </div>`).join('');
-      }
-    } catch(e) {
-      bookingList.innerHTML = '<div class="orders-empty-state">Could not load bookings</div>';
-    }
-  }
-
-  // Product orders
-  if (productList) {
-    productList.innerHTML = '<div class="orders-empty-state" style="padding:20px;">Loading…</div>';
-    try {
-      const data = await dbGet('guest_requests', `type=eq.product_order&room=eq.${encodeURIComponent(guestSession.room)}&order=created_at.desc`);
-      if (!data || data.length === 0) {
-        productList.innerHTML = `<div class="orders-empty-state">${tr('noOrdersYet')}</div>`;
-      } else {
-        productList.innerHTML = data.map(o => {
-          const items = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
-          const status = o.status || 'pending';
-          return `
-            <div class="booking-item">
-              <div class="booking-info">
-                ${items.map(i => `<div class="bi-name">${i.name} <span style="font-size:.8em;font-family:'Jost',sans-serif;opacity:.65;">× ${i.qty} · $${Number(i.price).toFixed(2)}</span></div>`).join('')}
-                <div class="bi-detail" style="margin-top:4px;">Total: $${Number(o.total_price || 0).toFixed(2)}</div>
-                <div class="bi-detail" style="margin-top:6px;font-size:.65rem;opacity:.5;">Submitted ${new Date(o.created_at).toLocaleDateString()}</div>
-              </div>
-              <div><span class="status-badge status-${status}">${status}</span></div>
-            </div>`;
-        }).join('');
-      }
-    } catch(e) {
-      productList.innerHTML = '<div class="orders-empty-state">Could not load product orders</div>';
-    }
-  }
-}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
