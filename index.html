@@ -768,6 +768,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 <div id="screen-guest" class="screen">
   <header class="portal-header">
     <div class="portal-header-left">
+      <div id="guest-header-btn"></div>
       <div class="room-badge"><div class="dot"></div><span id="room-display">Room —</span></div>
     </div>
     <div class="portal-header-brand">Essence <span>Arenal</span></div>
@@ -1857,6 +1858,7 @@ function applyGuestLanguage() {
     document.getElementById('room-display').textContent = `${tr('roomDisplay')} ${guestSession.room} · ${guestSession.name}`;
   }
 
+  _renderGuestHeaderBtn();
   renderGuestServices();
 }
 
@@ -1900,6 +1902,23 @@ function guestLogin() {
   renderGuestServices();
   loadMyBookings();
 }
+// ── Guest header button (Exit or ← Back) ──────────
+let _guestBackFn = null;
+function setGuestHeaderBtn(mode, backFn) {
+  _guestBackFn = (mode === 'back' && backFn) ? backFn : null;
+  _renderGuestHeaderBtn();
+}
+function _renderGuestHeaderBtn() {
+  const el = document.getElementById('guest-header-btn');
+  if (!el) return;
+  if (_guestBackFn) {
+    el.innerHTML = `<button class="logout-btn" onclick="_guestHeaderBack()">${tr('back')}</button>`;
+  } else {
+    el.innerHTML = `<button class="logout-btn" onclick="guestLogout()">${tr('exit')}</button>`;
+  }
+}
+function _guestHeaderBack() { if (_guestBackFn) _guestBackFn(); }
+
 function showGuestTab(tab) {
   document.querySelectorAll('.portal-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1907,6 +1926,7 @@ function showGuestTab(tab) {
   const sec = document.getElementById(sectionId);
   if (sec) sec.classList.add('active');
   document.getElementById('tab-' + tab)?.classList.add('active');
+  setGuestHeaderBtn('exit');
   if (tab === 'spa') renderSpaCategories();
   if (tab === 'tours') renderTourGrid();
   if (tab === 'room') renderProductGrid();
@@ -2079,6 +2099,7 @@ function renderCards(containerId, services, category) {
 function renderSpaCategories() {
   const c = document.getElementById('spa-cards');
   if (!c) return;
+  setGuestHeaderBtn('exit');
   const cats = [
     { id:'cat-therapies', icon:'🌟', nameKey:'catTherapies', subKey:'catTherapiesSub' },
     { id:'cat-massages',  icon:'🤲', nameKey:'catMassages',  subKey:'catMassagesSub' },
@@ -2094,9 +2115,6 @@ function renderSpaCategories() {
           <div class="cat-grid-sub">${tr(cat.subKey)}</div>
         </div>
       `).join('')}
-    </div>
-    <div style="text-align:center;margin-top:2.5rem;padding-bottom:1rem;">
-      <button onclick="guestLogout()" style="background:none;border:none;color:rgba(122,170,134,0.5);font-family:'Jost',sans-serif;font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;transition:color .3s;" onmouseover="this.style.color='var(--sage)'" onmouseout="this.style.color='rgba(122,170,134,0.5)'">← ${tr('exit').replace(/^←\s*/, '')}</button>
     </div>`;
 }
 
@@ -2110,8 +2128,8 @@ function selectSpaCategory(catId) {
   const cat = catMap[catId]; if (!cat) return;
   const c = document.getElementById('spa-cards');
   if (!c) return;
+  setGuestHeaderBtn('back', renderSpaCategories);
   c.innerHTML = `
-    <div class="svc-back-bar"><button class="spa-back-btn" onclick="renderSpaCategories()">${tr('back')}</button></div>
     <div class="svc-grid">
       ${cat.services.map(s => {
         const ls = localizeService(s);
@@ -2146,10 +2164,8 @@ function carouselGoto(id, i) {
 function showSpaCalendar() {
   const c = document.getElementById('spa-cards');
   if (!c) return;
+  setGuestHeaderBtn('back', renderSpaCategories);
   c.innerHTML = `
-    <div style="padding:.4rem 0 .8rem;">
-      <button onclick="renderSpaCategories()" style="background:none;border:none;color:var(--sage);font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;padding:.3rem 0;display:inline-flex;align-items:center;gap:.4rem;transition:color .2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--sage)'">← ${tr('back')}</button>
-    </div>
     <div>
       <div class="week-nav" style="border-radius:8px 8px 0 0;">
         <div class="week-label" id="guest-cal-week-label"></div>
