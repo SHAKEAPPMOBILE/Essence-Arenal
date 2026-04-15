@@ -179,6 +179,23 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .carousel-dot { width:6px; height:6px; border-radius:50%; background:rgba(122,170,134,0.22); cursor:pointer; transition:all .3s; flex-shrink:0; }
 .carousel-dot.active { background:var(--sage); width:22px; border-radius:3px; }
 
+/* Category / service grid views */
+.cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:14px; padding:4px 0; }
+.cat-grid-item { background:rgba(15,31,15,0.55); border:1px solid rgba(122,170,134,0.18); border-radius:12px; padding:1.6rem 1rem 1.3rem; text-align:center; cursor:pointer; transition:all .22s ease; }
+.cat-grid-item:hover { border-color:rgba(122,170,134,0.5); background:rgba(122,170,134,0.08); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+.cat-grid-icon { font-size:2.6rem; line-height:1; margin-bottom:.65rem; display:block; }
+.cat-grid-name { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:300; color:var(--cream); margin-bottom:.2rem; line-height:1.2; }
+.cat-grid-sub { font-size:.5rem; letter-spacing:.22em; text-transform:uppercase; color:var(--sage); }
+.svc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:14px; padding:4px 0; }
+.svc-grid-item { background:rgba(15,31,15,0.55); border:1px solid rgba(122,170,134,0.18); border-radius:10px; padding:1.3rem 1rem; cursor:pointer; transition:all .22s ease; display:flex; flex-direction:column; }
+.svc-grid-item:hover { border-color:rgba(122,170,134,0.5); background:rgba(122,170,134,0.08); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+.svc-grid-icon { font-size:2rem; margin-bottom:.5rem; line-height:1; }
+.svc-grid-name { font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-weight:300; color:var(--cream); margin-bottom:.15rem; line-height:1.25; }
+.svc-grid-sub { font-size:.5rem; letter-spacing:.2em; text-transform:uppercase; color:var(--sage); margin-bottom:.5rem; }
+.svc-grid-price { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:300; color:var(--gold); margin-top:auto; padding-top:.4rem; }
+.svc-grid-add { background:linear-gradient(135deg,var(--fern),var(--moss)); border:none; border-radius:2px; padding:.45rem .8rem; color:var(--cream); font-family:'Jost',sans-serif; font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; cursor:pointer; margin-top:.65rem; align-self:flex-end; transition:all .25s; }
+.svc-grid-add:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+
 /* Booking modal */
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
 .modal-overlay.open { display:flex; }
@@ -1752,6 +1769,9 @@ function showGuestTab(tab) {
   const sec = document.getElementById(sectionId);
   if (sec) sec.classList.add('active');
   event.target.classList.add('active');
+  if (tab === 'spa') renderSpaCategories();
+  if (tab === 'tours') renderTourGrid();
+  if (tab === 'room') renderProductGrid();
   if (tab === 'bookings') loadMyBookings();
 }
 
@@ -1813,8 +1833,8 @@ let productCart = [];
 
 function renderGuestServices() {
   renderSpaCategories();
-  renderCards('tour-cards', TOUR_SERVICES, tr('toursTab').replace('🌋 ', ''));
-  renderProductCards();
+  renderTourGrid();
+  renderProductGrid();
   renderProductCart();
 }
 // ── Carousel ──────────────────────────────────────
@@ -1834,34 +1854,16 @@ function renderCards(containerId, services, category) {
 function renderSpaCategories() {
   const c = document.getElementById('spa-cards');
   if (!c) return;
-  carouselData['spa-cats'] = { services: SPA_CATEGORIES, idx: 0 };
-  carouselData['spa-cats'].refresh = _refreshSpaCatCard;
   c.innerHTML = `
-    <div class="carousel-card-area" id="spa-cats-card"></div>
-    <div class="carousel-dots-row"><div class="carousel-dots" id="spa-cats-dots"></div></div>`;
-  _refreshSpaCatCard();
-}
-
-function _refreshSpaCatCard() {
-  const d = carouselData['spa-cats']; if (!d) return;
-  const s = d.services[d.idx];
-  const cardEl = document.getElementById('spa-cats-card');
-  if (cardEl) cardEl.innerHTML = `
-    <div class="carousel-card">
-      <div class="carousel-medallion-row">
-        <button class="carousel-arrow" onclick="carouselPrev('spa-cats')">&#8249;</button>
-        <div class="carousel-medallion carousel-medallion--clickable" onclick="selectSpaCategory('${s.id}')">
-          <div class="carousel-icon">${s.icon}</div>
-          <div class="carousel-name">${s.name}</div>
-          <div class="carousel-sub">${s.sub}</div>
+    <div class="cat-grid">
+      ${SPA_CATEGORIES.map(cat => `
+        <div class="cat-grid-item" onclick="selectSpaCategory('${cat.id}')">
+          <span class="cat-grid-icon">${cat.icon}</span>
+          <div class="cat-grid-name">${cat.name}</div>
+          <div class="cat-grid-sub">${cat.sub}</div>
         </div>
-        <button class="carousel-arrow" onclick="carouselNext('spa-cats')">&#8250;</button>
-      </div>
-      <div class="carousel-desc">${s.desc}</div>
+      `).join('')}
     </div>`;
-  const dotsEl = document.getElementById('spa-cats-dots');
-  if (dotsEl) dotsEl.innerHTML = SPA_CATEGORIES.map((_, i) =>
-    `<span class="carousel-dot${i === d.idx ? ' active' : ''}" onclick="carouselGoto('spa-cats',${i})"></span>`).join('');
 }
 
 function selectSpaCategory(catId) {
@@ -1922,38 +1924,40 @@ function _refreshCarouselCard(id) {
     `<span class="carousel-dot${i === d.idx ? ' active' : ''}" onclick="carouselGoto('${id}',${i})"></span>`).join('');
 }
 
-function renderProductCards() {
-  const c = document.getElementById('product-cards');
+function renderTourGrid() {
+  const c = document.getElementById('tour-cards');
   if (!c) return;
-  carouselData['product-cards'] = { services: PRODUCT_ITEMS, idx: 0 };
-  carouselData['product-cards'].refresh = _refreshProductCard;
+  const category = tr('toursTab').replace('🌋 ', '');
   c.innerHTML = `
-    <div class="carousel-card-area" id="product-cards-card"></div>
-    <div class="carousel-dots-row"><div class="carousel-dots" id="product-cards-dots"></div></div>`;
-  _refreshProductCard();
+    <div class="svc-grid">
+      ${TOUR_SERVICES.map(s => {
+        const ls = localizeService(s);
+        const sJson = JSON.stringify(s).replace(/"/g, '&quot;');
+        return `<div class="svc-grid-item" onclick="openBookingModal(${sJson}, '${category}')">
+          <div class="svc-grid-icon">${s.icon}</div>
+          <div class="svc-grid-name">${ls.name}</div>
+          <div class="svc-grid-sub">${ls.sub}</div>
+          <div class="svc-grid-price">${s.price}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
-function _refreshProductCard() {
-  const d = carouselData['product-cards']; if (!d) return;
-  const p = d.services[d.idx];
-  const cardEl = document.getElementById('product-cards-card');
-  if (cardEl) cardEl.innerHTML = `
-    <div class="carousel-card">
-      <div class="carousel-medallion-row">
-        <button class="carousel-arrow" onclick="carouselPrev('product-cards')">&#8249;</button>
-        <div class="carousel-medallion carousel-medallion--clickable" onclick="addProductToCart('${p.id}')">
-          <div class="carousel-icon">${p.icon}</div>
-          <div class="carousel-name">${p.name}</div>
-          <div class="carousel-sub">${p.sub}</div>
+function renderProductGrid() {
+  const c = document.getElementById('product-cards');
+  if (!c) return;
+  c.innerHTML = `
+    <div class="svc-grid">
+      ${PRODUCT_ITEMS.map(p => `
+        <div class="svc-grid-item">
+          <div class="svc-grid-icon">${p.icon}</div>
+          <div class="svc-grid-name">${p.name}</div>
+          <div class="svc-grid-sub">${p.sub}</div>
+          <div class="svc-grid-price">$${p.price}</div>
+          <button class="svc-grid-add" onclick="event.stopPropagation();addProductToCart('${p.id}')">＋ Agregar</button>
         </div>
-        <button class="carousel-arrow" onclick="carouselNext('product-cards')">&#8250;</button>
-      </div>
-      <div class="carousel-desc">${p.desc}</div>
-      <div class="carousel-price">$${p.price}</div>
+      `).join('')}
     </div>`;
-  const dotsEl = document.getElementById('product-cards-dots');
-  if (dotsEl) dotsEl.innerHTML = PRODUCT_ITEMS.map((_, i) =>
-    `<span class="carousel-dot${i === d.idx ? ' active' : ''}" onclick="carouselGoto('product-cards',${i})"></span>`).join('');
 }
 
 function addProductToCart(productId) {
