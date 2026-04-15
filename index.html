@@ -1869,20 +1869,28 @@ function renderSpaCategories() {
 function selectSpaCategory(catId) {
   const catMap = {
     'cat-therapies': { services: THERAPIES_SERVICES, label: 'Therapies' },
-    'cat-massages': { services: MASSAGES_SERVICES, label: 'Massages' },
-    'cat-beauty': { services: BEAUTY_SERVICES, label: 'Beauty Treatments' },
+    'cat-massages':  { services: MASSAGES_SERVICES,  label: 'Massages' },
+    'cat-beauty':    { services: BEAUTY_SERVICES,    label: 'Beauty Treatments' },
   };
   const cat = catMap[catId]; if (!cat) return;
   const c = document.getElementById('spa-cards');
   if (!c) return;
-  const containerId = 'spa-services';
   c.innerHTML = `
-    <button class="spa-back-btn" onclick="renderSpaCategories()">&#8592; Back to categories</button>
-    <div class="carousel-card-area" id="${containerId}-card"></div>
-    <div class="carousel-dots-row"><div class="carousel-dots" id="${containerId}-dots"></div></div>`;
-  carouselData[containerId] = { services: cat.services, category: cat.label, idx: 0, medallionClass: 'carousel-medallion--rose' };
-  carouselData[containerId].refresh = () => _refreshCarouselCard(containerId);
-  _refreshCarouselCard(containerId);
+    <button class="spa-back-btn" onclick="renderSpaCategories()">&#8592; Volver</button>
+    <div class="svc-grid">
+      ${cat.services.map(s => {
+        const ls = localizeService(s);
+        const sJson = JSON.stringify(s).replace(/"/g, '&quot;');
+        return `<div class="svc-grid-item" onclick="openBookingModal(${sJson}, '${cat.label}')">
+          <div class="svc-grid-icon">${s.icon}</div>
+          <div class="svc-grid-name">${ls.name}</div>
+          <div class="svc-grid-sub">${ls.sub}</div>
+          <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${ls.desc}</div>
+          <div class="svc-grid-price">${s.price}</div>
+          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${cat.label}')">Reservar</button>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 function carouselPrev(id) {
@@ -1937,7 +1945,9 @@ function renderTourGrid() {
           <div class="svc-grid-icon">${s.icon}</div>
           <div class="svc-grid-name">${ls.name}</div>
           <div class="svc-grid-sub">${ls.sub}</div>
+          <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${ls.desc}</div>
           <div class="svc-grid-price">${s.price}</div>
+          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${category}')">Reservar</button>
         </div>`;
       }).join('')}
     </div>`;
@@ -1949,10 +1959,11 @@ function renderProductGrid() {
   c.innerHTML = `
     <div class="svc-grid">
       ${PRODUCT_ITEMS.map(p => `
-        <div class="svc-grid-item">
+        <div class="svc-grid-item" onclick="addProductToCart('${p.id}')">
           <div class="svc-grid-icon">${p.icon}</div>
           <div class="svc-grid-name">${p.name}</div>
           <div class="svc-grid-sub">${p.sub}</div>
+          <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${p.desc}</div>
           <div class="svc-grid-price">$${p.price}</div>
           <button class="svc-grid-add" onclick="event.stopPropagation();addProductToCart('${p.id}')">＋ Agregar</button>
         </div>
