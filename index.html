@@ -189,7 +189,7 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .cat-grid-icon { font-size:2.6rem; line-height:1; margin-bottom:.65rem; display:block; }
 .cat-grid-name { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:300; color:var(--cream); margin-bottom:.2rem; line-height:1.2; }
 .cat-grid-sub { font-size:.5rem; letter-spacing:.22em; text-transform:uppercase; color:var(--sage); }
-.svc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:14px; padding:4px 0; }
+.svc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:14px; padding:4px 0; overflow-y:auto; max-height:calc(100vh - 300px); -webkit-overflow-scrolling:touch; }
 .svc-grid-item { background:rgba(15,31,15,0.55); border:1px solid rgba(122,170,134,0.18); border-radius:10px; padding:1.3rem 1rem; cursor:pointer; transition:all .22s ease; display:flex; flex-direction:column; }
 .svc-grid-item:hover { border-color:rgba(122,170,134,0.5); background:rgba(122,170,134,0.08); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.25); }
 .svc-grid-icon { font-size:2rem; margin-bottom:.5rem; line-height:1; }
