@@ -1950,8 +1950,11 @@ function renderGuestCalendar() {
     calActivities = raw ? JSON.parse(raw) : [];
   } catch(e) { calActivities = []; }
 
+  const GUEST_VISIBLE_TYPES = new Set(['cacao','temazcal','soundbath','night','bird']);
+  const visibleActivities = calActivities.filter(a => GUEST_VISIBLE_TYPES.has(a.type));
+
   const activityMap = new Map();
-  calActivities.forEach(activity => {
+  visibleActivities.forEach(activity => {
     const scopeKey = activity.weekly ? `weekly:${activity.dow}` : `date:${activity.date}`;
     const key = `${scopeKey}|${activity.slot}`;
     const bucket = activityMap.get(key) || [];
@@ -2001,14 +2004,118 @@ function makeGuestPill(act) {
   const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
   const pill = document.createElement('div');
   pill.className = `activity-pill color-${type.color}`;
-  pill.style.cursor = 'default';
+  pill.style.cursor = 'pointer';
   const staffLine = [act.staff, act.by].filter(Boolean).join(', ');
+  const attendeeCount = Array.isArray(act.attendees) ? act.attendees.length : 0;
   pill.innerHTML = `
     <span class="pill-time">${act.time || ''}<span class="pill-location ${getSectionClass(act.section)}">${getSectionLabel(act.section)}</span></span>
-    <span class="pill-name">${type.emoji} ${act.serviceName || type.name}${act.guestName ? ' · ' + act.guestName : ''}</span>
+    <span class="pill-name">${type.emoji} ${act.serviceName || type.name}${attendeeCount > 0 ? ` · ${attendeeCount} joined` : ''}</span>
     ${staffLine ? `<span class="pill-staff">${staffLine}</span>` : ''}
   `;
+  pill.onclick = () => showGuestActivityDetail(act);
   return pill;
+}
+
+const GUEST_ACTIVITY_DESCS = {
+  cacao:     { emoji: '🍫', desc: 'A sacred cacao ceremony using ceremonial-grade cacao from our farm. Connect with community, heart, and ancient Costa Rican traditions.' },
+  temazcal:  { emoji: '🔥', desc: 'Ancient sweat lodge ceremony for deep purification and renewal. A transformative ritual led by our expert guide.' },
+  soundbath: { emoji: '🎵', desc: 'Tibetan bowls and crystal singing bowls create healing frequencies for nervous system reset and deep relaxation.' },
+  night:     { emoji: '🌙', desc: 'Guided walk after dark to spot sloths, tree frogs, and exotic nocturnal creatures of the Arenal rainforest.' },
+  bird:      { emoji: '🦜', desc: 'Dawn expedition with a naturalist guide. Over 500 bird species have been recorded in the Arenal region.' },
+};
+
+let _guestViewingActivity = null;
+
+function showGuestActivityDetail(act) {
+  _guestViewingActivity = act;
+  const c = document.getElementById('spa-cards');
+  if (!c) return;
+  setGuestHeaderBtn('back', showSpaCalendar);
+  const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
+  const info = GUEST_ACTIVITY_DESCS[act.type] || {};
+  const emoji = info.emoji || type.emoji;
+  const desc = info.desc || act.notes || '';
+  const title = act.serviceName || type.name;
+  const dateStr = act.date ? new Date(`${act.date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) : '';
+  const timeStr = act.time || '';
+  const attendeeCount = Array.isArray(act.attendees) ? act.attendees.length : 0;
+  const alreadyJoined = guestSession && Array.isArray(act.attendees) &&
+    act.attendees.some(a => a.room === guestSession.room && a.name === guestSession.name);
+  c.innerHTML = `
+    <div style="padding:1rem 0 2rem;">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="font-size:3.5rem;margin-bottom:.5rem;">${emoji}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--gold);line-height:1.2;">${title}</div>
+        ${dateStr || timeStr ? `<div style="margin-top:.6rem;font-size:.82rem;color:rgba(200,219,200,0.6);letter-spacing:.08em;">${[dateStr, timeStr].filter(Boolean).join(' · ')}</div>` : ''}
+        ${attendeeCount > 0 ? `<div style="margin-top:.4rem;font-size:.75rem;color:rgba(200,219,200,0.4);">${attendeeCount} ${attendeeCount === 1 ? 'guest' : 'guests'} joining</div>` : ''}
+      </div>
+      ${desc ? `<p style="font-size:.88rem;line-height:1.7;color:rgba(200,219,200,0.75);margin-bottom:1.8rem;padding:0 .25rem;">${desc}</p>` : ''}
+      <div style="text-align:center;">
+        ${alreadyJoined
+          ? `<div style="color:var(--sage);font-size:.9rem;padding:.75rem 1.5rem;border:1px solid rgba(122,170,134,0.3);border-radius:999px;display:inline-block;">✓ You're already joining</div>`
+          : `<button class="btn-confirm" onclick="showGuestJoinForm()">Join this activity</button>`
+        }
+      </div>
+    </div>`;
+}
+
+function showGuestJoinForm() {
+  const act = _guestViewingActivity;
+  if (!act) return;
+  const c = document.getElementById('spa-cards');
+  if (!c) return;
+  setGuestHeaderBtn('back', () => showGuestActivityDetail(act));
+  const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
+  const title = act.serviceName || type.name;
+  const prefixRoom = (guestSession && guestSession.room) || '';
+  const prefixName = (guestSession && guestSession.name) || '';
+  c.innerHTML = `
+    <div style="padding:1rem 0 2rem;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);margin-bottom:1.5rem;">Join: ${title}</div>
+      <div style="margin-bottom:1rem;">
+        <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(200,219,200,0.5);display:block;margin-bottom:.4rem;">Room Number</label>
+        <input type="text" id="join-room" value="${prefixRoom}" placeholder="e.g. 12" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(122,170,134,0.25);border-radius:8px;padding:.6rem .9rem;color:#cddccd;font-size:.9rem;outline:none;">
+      </div>
+      <div style="margin-bottom:1.8rem;">
+        <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(200,219,200,0.5);display:block;margin-bottom:.4rem;">Your Name</label>
+        <input type="text" id="join-name" value="${prefixName}" placeholder="First name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(122,170,134,0.25);border-radius:8px;padding:.6rem .9rem;color:#cddccd;font-size:.9rem;outline:none;">
+      </div>
+      <div id="join-success" style="display:none;text-align:center;padding:1rem 0 1.5rem;">
+        <div style="font-size:2rem;margin-bottom:.4rem;">🎉</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);">You're in!</div>
+        <div style="font-size:.85rem;color:rgba(200,219,200,0.6);margin-top:.4rem;">See you at ${title}</div>
+      </div>
+      <div id="join-form-actions" style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button class="btn-ghost" onclick="showGuestActivityDetail(_guestViewingActivity)">← Back</button>
+        <button class="btn-confirm" onclick="confirmJoinActivity()">Confirm</button>
+      </div>
+    </div>`;
+}
+
+function confirmJoinActivity() {
+  const act = _guestViewingActivity;
+  if (!act) return;
+  const room = document.getElementById('join-room')?.value.trim();
+  const name = document.getElementById('join-name')?.value.trim();
+  if (!room || !name) { showToast('Room and name are required.'); return; }
+  try {
+    const raw = localStorage.getItem('essence_arenal_calendar_v1');
+    const all = raw ? JSON.parse(raw) : [];
+    const idx = all.findIndex(a => a.id === act.id);
+    if (idx >= 0) {
+      if (!Array.isArray(all[idx].attendees)) all[idx].attendees = [];
+      const already = all[idx].attendees.some(a => a.room === room && a.name === name);
+      if (!already) all[idx].attendees.push({ room, name, joinedAt: new Date().toISOString() });
+      localStorage.setItem('essence_arenal_calendar_v1', JSON.stringify(all));
+      _guestViewingActivity = all[idx];
+    }
+  } catch(e) { console.warn('[join]', e); }
+  const formActions = document.getElementById('join-form-actions');
+  const successEl = document.getElementById('join-success');
+  if (formActions) formActions.style.display = 'none';
+  if (successEl) successEl.style.display = 'block';
+  setGuestHeaderBtn('back', showSpaCalendar);
+  setTimeout(() => showSpaCalendar(), 2000);
 }
 
 // Services data
@@ -4132,6 +4239,9 @@ function openBookingInfoModal(activity) {
     { label: 'Approved By', value: approvedBy },
     { label: 'Approved At', value: approvedAt },
   ];
+  if (Array.isArray(activity.attendees) && activity.attendees.length > 0) {
+    rows.push({ label: `Attendees (${activity.attendees.length})`, value: activity.attendees.map(a => `${a.name}${a.room ? ' · Room ' + a.room : ''}`).join('<br>') });
+  }
   host.innerHTML = rows.map(row => `
     <div class="booking-info-row">
       <div class="booking-info-label">${row.label}</div>
@@ -4381,7 +4491,7 @@ function handleCalendarInteraction(event) {
   if (pill) {
     const activity = activities.find(item => item.id === Number(pill.dataset.activityId));
     if (activity) {
-      if (isGuestBookingActivity(activity)) {
+      if (isGuestBookingActivity(activity) || (Array.isArray(activity.attendees) && activity.attendees.length > 0)) {
         window.setTimeout(() => openBookingInfoModal(activity), 0);
       } else {
         window.setTimeout(() => openModal(activity), 0);
