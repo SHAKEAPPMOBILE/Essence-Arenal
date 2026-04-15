@@ -894,46 +894,46 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       </div>
       <div class="field-group"><label id="bm-label-notes">Special requests / notes</label><textarea id="bm-notes" rows="3" placeholder="Allergies, preferences, anything we should know…"></textarea></div>
       <div class="modal-actions">
-        <button class="btn-confirm" onclick="bmGoStep2()">Continue →</button>
+        <button class="btn-confirm" id="bm-step1-continue" onclick="bmGoStep2()">Continue →</button>
       </div>
     </div>
 
     <!-- Step 2: Spa intake form (Spa & Massage only) -->
     <div id="bm-step-2" style="display:none;">
-      <div class="modal-title">Health &amp; Preferences</div>
-      <div class="modal-sub" style="margin-bottom:1.2rem;">Helps us personalise your treatment</div>
+      <div class="modal-title" id="bm-step2-title">Health &amp; Preferences</div>
+      <div class="modal-sub" id="bm-step2-sub" style="margin-bottom:1.2rem;">Helps us personalise your treatment</div>
       <div class="intake-section">
-        <div class="intake-section-label">Medical Information</div>
+        <div class="intake-section-label" id="bm-intake-medical">Medical Information</div>
         <div class="intake-yn-row">
-          <span class="intake-yn-label">Currently taking medications</span>
+          <span class="intake-yn-label" id="bm-yn-label-medications">Currently taking medications</span>
           <div class="intake-yn-btns" id="bm-yn-medications">
             <button type="button" class="yn-btn" data-val="yes" onclick="bmSetYN('medications','yes')">Yes</button>
             <button type="button" class="yn-btn active" data-val="no" onclick="bmSetYN('medications','no')">No</button>
           </div>
         </div>
         <div class="intake-yn-row">
-          <span class="intake-yn-label">Orthopedic injuries</span>
+          <span class="intake-yn-label" id="bm-yn-label-injuries">Orthopedic injuries</span>
           <div class="intake-yn-btns" id="bm-yn-injuries">
             <button type="button" class="yn-btn" data-val="yes" onclick="bmSetYN('injuries','yes')">Yes</button>
             <button type="button" class="yn-btn active" data-val="no" onclick="bmSetYN('injuries','no')">No</button>
           </div>
         </div>
         <div class="intake-yn-row">
-          <span class="intake-yn-label">Pregnant</span>
+          <span class="intake-yn-label" id="bm-yn-label-pregnant">Pregnant</span>
           <div class="intake-yn-btns" id="bm-yn-pregnant">
             <button type="button" class="yn-btn" data-val="yes" onclick="bmSetYN('pregnant','yes')">Yes</button>
             <button type="button" class="yn-btn active" data-val="no" onclick="bmSetYN('pregnant','no')">No</button>
           </div>
         </div>
         <div class="intake-yn-row">
-          <span class="intake-yn-label">Chronic pain</span>
+          <span class="intake-yn-label" id="bm-yn-label-chronicpain">Chronic pain</span>
           <div class="intake-yn-btns" id="bm-yn-chronicPain">
             <button type="button" class="yn-btn" data-val="yes" onclick="bmSetYN('chronicPain','yes')">Yes</button>
             <button type="button" class="yn-btn active" data-val="no" onclick="bmSetYN('chronicPain','no')">No</button>
           </div>
         </div>
         <div class="intake-yn-row">
-          <span class="intake-yn-label">Known allergies</span>
+          <span class="intake-yn-label" id="bm-yn-label-allergies">Known allergies</span>
           <div class="intake-yn-btns" id="bm-yn-allergies">
             <button type="button" class="yn-btn" data-val="yes" onclick="bmSetYN('allergies','yes')">Yes</button>
             <button type="button" class="yn-btn active" data-val="no" onclick="bmSetYN('allergies','no')">No</button>
@@ -941,48 +941,48 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         </div>
       </div>
       <div class="intake-section">
-        <div class="intake-section-label">Massage Preferences</div>
+        <div class="intake-section-label" id="bm-intake-massage">Massage Preferences</div>
         <div class="field-group">
-          <label>Preferred Pressure</label>
+          <label id="bm-pressure-label">Preferred Pressure</label>
           <div class="pressure-btns">
-            <button type="button" class="pressure-btn" data-val="light" onclick="bmSetPressure('light')">Light</button>
-            <button type="button" class="pressure-btn active" data-val="medium" onclick="bmSetPressure('medium')">Medium</button>
-            <button type="button" class="pressure-btn" data-val="deep" onclick="bmSetPressure('deep')">Deep</button>
+            <button type="button" class="pressure-btn" id="bm-pressure-light" data-val="light" onclick="bmSetPressure('light')">Light</button>
+            <button type="button" class="pressure-btn active" id="bm-pressure-medium" data-val="medium" onclick="bmSetPressure('medium')">Medium</button>
+            <button type="button" class="pressure-btn" id="bm-pressure-deep" data-val="deep" onclick="bmSetPressure('deep')">Deep</button>
           </div>
         </div>
         <div class="field-group">
-          <label>Oil sensitivities (select any)</label>
+          <label id="bm-oils-label">Oil sensitivities (select any)</label>
           <div class="oil-checks">
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'coconut')">Coconut</button>
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'mineral')">Mineral</button>
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'almond')">Almond</button>
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'lavender')">Lavender</button>
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'jasmine')">Jasmine</button>
-            <button type="button" class="oil-check-btn" onclick="bmToggleOil(this,'eucalyptus')">Eucalyptus</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-coconut" onclick="bmToggleOil(this,'coconut')">Coconut</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-mineral" onclick="bmToggleOil(this,'mineral')">Mineral</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-almond" onclick="bmToggleOil(this,'almond')">Almond</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-lavender" onclick="bmToggleOil(this,'lavender')">Lavender</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-jasmine" onclick="bmToggleOil(this,'jasmine')">Jasmine</button>
+            <button type="button" class="oil-check-btn" id="bm-oil-eucalyptus" onclick="bmToggleOil(this,'eucalyptus')">Eucalyptus</button>
           </div>
         </div>
         <div class="field-group">
-          <label>Areas to avoid</label>
+          <label id="bm-areas-label">Areas to avoid</label>
           <input type="text" id="bm-areas-avoid" placeholder="e.g. lower back, knees">
         </div>
         <div class="field-group">
-          <label>Treatment goals</label>
+          <label id="bm-goals-label">Treatment goals</label>
           <input type="text" id="bm-goals" placeholder="e.g. relaxation, muscle tension relief">
         </div>
       </div>
       <div class="modal-actions" style="justify-content:space-between;">
-        <button class="btn-ghost" onclick="bmGoStep1()">← Back</button>
-        <button class="btn-confirm" onclick="bmGoStep3()">Continue →</button>
+        <button class="btn-ghost" id="bm-step2-back" onclick="bmGoStep1()">← Back</button>
+        <button class="btn-confirm" id="bm-step2-continue" onclick="bmGoStep3()">Continue →</button>
       </div>
     </div>
 
     <!-- Step 3: Guest details -->
     <div id="bm-step-3" style="display:none;">
-      <div class="modal-title">Your Details</div>
-      <div class="field-group"><label for="bm-room">Room Number</label><input type="text" id="bm-room" required placeholder="e.g. 12"></div>
-      <div class="field-group"><label for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="First name"></div>
+      <div class="modal-title" id="bm-step3-title">Your Details</div>
+      <div class="field-group"><label id="bm-step3-room-label" for="bm-room">Room Number</label><input type="text" id="bm-room" required placeholder="e.g. 12"></div>
+      <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="First name"></div>
       <div class="field-group">
-        <label>WhatsApp <span style="color:rgba(122,170,134,0.5);font-size:.55rem;">· optional · for booking confirmations</span></label>
+        <label><span id="bm-label-whatsapp">WhatsApp</span> <span id="bm-whatsapp-note" style="color:rgba(122,170,134,0.5);font-size:.55rem;">· optional · for booking confirmations</span></label>
         <div style="display:flex;gap:0;border:1px solid rgba(122,170,134,0.2);border-radius:12px;overflow:hidden;">
           <select id="bm-phone-code" style="background:rgba(255,255,255,0.06);border:none;border-right:1px solid rgba(122,170,134,0.2);padding:.85rem .8rem;color:var(--cream);font-family:'Jost',sans-serif;font-size:.9rem;font-weight:300;outline:none;cursor:pointer;width:105px;flex-shrink:0;">
             <option value="506">🇨🇷 +506</option>
@@ -1009,7 +1009,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         </div>
       </div>
       <div class="modal-actions" style="justify-content:space-between;">
-        <button class="btn-ghost" onclick="bmGoStep3Back()">← Back</button>
+        <button class="btn-ghost" id="bm-step3-back" onclick="bmGoStep3Back()">← Back</button>
         <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Request</button>
       </div>
     </div>
@@ -1562,7 +1562,23 @@ const GUEST_I18N = {
     bookingsHeaderTitle: 'My <em>Orders</em>', bookingsHeaderSub: 'All your requests · We\'ll confirm shortly',
     myBookingsSect: 'Spa & Activity Bookings', myProductsSect: 'Product Orders',
     noOrdersYet: 'No orders yet — explore our spa services and products!',
-    invalidEmail: 'Please enter a valid email', requiredNameRoom: 'Room number and name required'
+    invalidEmail: 'Please enter a valid email', requiredNameRoom: 'Room number and name required',
+    back: '← Back', bookBtn: 'Book', addToCartBtn: '＋ Add', continueBtn: 'Continue →',
+    catTherapies: 'Therapies', catTherapiesSub: 'Holistic healing', catTherapiesDesc: 'Ancient rituals and modern energy therapies for mind-body alignment.',
+    catMassages: 'Massages', catMassagesSub: 'Expert bodywork', catMassagesDesc: 'Professional massage techniques to restore and revitalize your body.',
+    catBeauty: 'Beauty Treatments', catBeautySub: 'Skin & wellness', catBeautyDesc: 'Natural beauty rituals using volcanic and botanical ingredients.',
+    intakeStep2Title: 'Health & Preferences', intakeStep2Sub: 'Helps us personalise your treatment',
+    intakeMedicalSection: 'Medical Information',
+    intakeMedications: 'Currently taking medications', intakeInjuries: 'Orthopedic injuries', intakePregnant: 'Pregnant', intakeChronicPain: 'Chronic pain', intakeAllergies: 'Known allergies',
+    btnYes: 'Yes', btnNo: 'No',
+    intakeMassageSection: 'Massage Preferences',
+    intakePressureLabel: 'Preferred Pressure', pressureLight: 'Light', pressureMedium: 'Medium', pressureDeep: 'Deep',
+    intakeOilsLabel: 'Oil sensitivities (select any)',
+    oilCoconut: 'Coconut', oilMineral: 'Mineral', oilAlmond: 'Almond', oilLavender: 'Lavender', oilJasmine: 'Jasmine', oilEucalyptus: 'Eucalyptus',
+    intakeAreasLabel: 'Areas to avoid', intakeAreasPlaceholder: 'e.g. lower back, knees',
+    intakeGoalsLabel: 'Treatment goals', intakeGoalsPlaceholder: 'e.g. relaxation, muscle tension relief',
+    step3Title: 'Your Details', step3RoomLabel: 'Room Number', step3NameLabel: 'Your Name',
+    labelWhatsapp: 'WhatsApp', whatsappNote: 'optional · for booking confirmations', phonePlaceholder: '8888 7777'
   },
   es: {
     exit: '← SALIR', spaTab: '🌺 Spa & Masajes', roomTab: '🍃 Productos', toursTab: '🌋 Tours', bookingsTab: '📋 Mis Pedidos',
@@ -1580,7 +1596,23 @@ const GUEST_I18N = {
     bookingsHeaderTitle: 'Mis <em>Pedidos</em>', bookingsHeaderSub: 'Todas tus solicitudes · Te confirmaremos pronto',
     myBookingsSect: 'Reservas Spa & Actividades', myProductsSect: 'Pedidos de Productos',
     noOrdersYet: 'Aún no tienes pedidos',
-    invalidEmail: 'Por favor ingresa un email válido', requiredNameRoom: 'Se requiere número de cuarto y nombre'
+    invalidEmail: 'Por favor ingresa un email válido', requiredNameRoom: 'Se requiere número de cuarto y nombre',
+    back: '← Volver', bookBtn: 'Reservar', addToCartBtn: '＋ Agregar', continueBtn: 'Continuar →',
+    catTherapies: 'Terapias', catTherapiesSub: 'Sanación holística', catTherapiesDesc: 'Rituales ancestrales y terapias energéticas para el equilibrio mente-cuerpo.',
+    catMassages: 'Masajes', catMassagesSub: 'Trabajo corporal experto', catMassagesDesc: 'Técnicas de masaje profesional para restaurar y revitalizar tu cuerpo.',
+    catBeauty: 'Tratamientos de Belleza', catBeautySub: 'Piel & bienestar', catBeautyDesc: 'Rituales de belleza natural con ingredientes volcánicos y botánicos.',
+    intakeStep2Title: 'Salud & Preferencias', intakeStep2Sub: 'Nos ayuda a personalizar tu tratamiento',
+    intakeMedicalSection: 'Información Médica',
+    intakeMedications: 'Tomando medicamentos actualmente', intakeInjuries: 'Lesiones ortopédicas', intakePregnant: 'Embarazada', intakeChronicPain: 'Dolor crónico', intakeAllergies: 'Alergias conocidas',
+    btnYes: 'Sí', btnNo: 'No',
+    intakeMassageSection: 'Preferencias de Masaje',
+    intakePressureLabel: 'Presión Preferida', pressureLight: 'Suave', pressureMedium: 'Media', pressureDeep: 'Profunda',
+    intakeOilsLabel: 'Sensibilidades a aceites (selecciona)',
+    oilCoconut: 'Coco', oilMineral: 'Mineral', oilAlmond: 'Almendra', oilLavender: 'Lavanda', oilJasmine: 'Jazmín', oilEucalyptus: 'Eucalipto',
+    intakeAreasLabel: 'Zonas a evitar', intakeAreasPlaceholder: 'ej. zona lumbar, rodillas',
+    intakeGoalsLabel: 'Objetivos del tratamiento', intakeGoalsPlaceholder: 'ej. relajación, alivio de tensión muscular',
+    step3Title: 'Tus Datos', step3RoomLabel: 'Número de Cuarto', step3NameLabel: 'Tu Nombre',
+    labelWhatsapp: 'WhatsApp', whatsappNote: 'opcional · para confirmaciones de reserva', phonePlaceholder: '8888 7777'
   },
   fr: {
     exit: '← SORTIR', spaTab: '🌺 Spa & Massage', roomTab: '🍃 Produits', toursTab: '🌋 Excursions', bookingsTab: '📋 Mes Commandes',
@@ -1598,7 +1630,23 @@ const GUEST_I18N = {
     bookingsHeaderTitle: 'Mes <em>Commandes</em>', bookingsHeaderSub: 'Toutes vos demandes · Nous confirmerons bientôt',
     myBookingsSect: 'Réservations Spa & Activités', myProductsSect: 'Commandes Produits',
     noOrdersYet: 'Pas encore de commandes',
-    invalidEmail: 'Veuillez saisir un email valide', requiredNameRoom: 'Numéro de chambre et nom requis'
+    invalidEmail: 'Veuillez saisir un email valide', requiredNameRoom: 'Numéro de chambre et nom requis',
+    back: '← Retour', bookBtn: 'Réserver', addToCartBtn: '＋ Ajouter', continueBtn: 'Continuer →',
+    catTherapies: 'Thérapies', catTherapiesSub: 'Guérison holistique', catTherapiesDesc: 'Rituels ancestraux et thérapies énergétiques pour l\'équilibre corps-esprit.',
+    catMassages: 'Massages', catMassagesSub: 'Soins corporels experts', catMassagesDesc: 'Techniques de massage professionnelles pour restaurer et revitaliser votre corps.',
+    catBeauty: 'Soins Beauté', catBeautySub: 'Peau & bien-être', catBeautyDesc: 'Rituels beauté naturels aux ingrédients volcaniques et botaniques.',
+    intakeStep2Title: 'Santé & Préférences', intakeStep2Sub: 'Aide à personnaliser votre soin',
+    intakeMedicalSection: 'Informations Médicales',
+    intakeMedications: 'Sous médicaments actuellement', intakeInjuries: 'Blessures orthopédiques', intakePregnant: 'Enceinte', intakeChronicPain: 'Douleur chronique', intakeAllergies: 'Allergies connues',
+    btnYes: 'Oui', btnNo: 'Non',
+    intakeMassageSection: 'Préférences de Massage',
+    intakePressureLabel: 'Pression Préférée', pressureLight: 'Légère', pressureMedium: 'Moyenne', pressureDeep: 'Profonde',
+    intakeOilsLabel: 'Sensibilités aux huiles (sélectionner)',
+    oilCoconut: 'Noix de coco', oilMineral: 'Minérale', oilAlmond: 'Amande', oilLavender: 'Lavande', oilJasmine: 'Jasmin', oilEucalyptus: 'Eucalyptus',
+    intakeAreasLabel: 'Zones à éviter', intakeAreasPlaceholder: 'ex. bas du dos, genoux',
+    intakeGoalsLabel: 'Objectifs du soin', intakeGoalsPlaceholder: 'ex. relaxation, soulagement des tensions musculaires',
+    step3Title: 'Vos Coordonnées', step3RoomLabel: 'Numéro de Chambre', step3NameLabel: 'Votre Nom',
+    labelWhatsapp: 'WhatsApp', whatsappNote: 'facultatif · pour les confirmations', phonePlaceholder: '8888 7777'
   }
 };
 
@@ -1617,7 +1665,40 @@ const SERVICE_I18N = {
     'kayak-lake': { name: 'Kayak en Lago Arenal', sub: 'Aventura en remo', desc: 'Navega en kayak por uno de los lagos más hermosos de Costa Rica.' },
     'breakfast-room': { name: 'Desayuno de Finca', sub: 'Entrega en tu cuarto', desc: 'Huevos frescos, frutas locales, pan artesanal y café orgánico.' },
     'picnic-basket': { name: 'Canasta Picnic', sub: 'Selección Bio Farm', desc: 'Quesos artesanales, embutidos, frutas de temporada y vino local.' },
-    'smoothie-bowl': { name: 'Smoothie Bowl', sub: 'Mezcla superfood', desc: 'Açaí, pitahaya, granola y miel de nuestras colmenas.' }
+    'smoothie-bowl': { name: 'Smoothie Bowl', sub: 'Mezcla superfood', desc: 'Açaí, pitahaya, granola y miel de nuestras colmenas.' },
+    'temazcal': { name: 'Temazcal / Baño de Vapor', sub: '180 min · $78/pax (mín 2)', desc: 'Ceremonia ancestral de purificación profunda y renovación espiritual.' },
+    'ionic-detox': { name: 'Detox Iónico', sub: '45 min', desc: 'Baño iónico de pies que elimina toxinas y restaura el equilibrio celular.' },
+    'reiki': { name: 'Reiki', sub: '60 min', desc: 'Energía universal canalizada para liberar bloqueos y restaurar el flujo vital.' },
+    'guided-meditation': { name: 'Meditación Guiada', sub: '30 min', desc: 'Visualización guiada y respiración para relajación profunda y claridad mental.' },
+    'sound-bath': { name: 'Baño de Sonido', sub: '60 min', desc: 'Cuencos tibetanos y cristalinos para el reinicio del sistema nervioso.' },
+    'nlp-therapy': { name: 'PNL / Terapia de Línea de Tiempo', sub: '60 min · mín 3 sesiones', desc: 'Programación neurolingüística para reprogramar creencias limitantes.' },
+    'forest-therapy': { name: 'Terapia de Bosque', sub: '2 horas', desc: 'Inmersión guiada en el bosque lluvioso para conectar y renovar la energía.' },
+    'swedish-massage': { name: 'Masaje Sueco', sub: '60 o 90 min', desc: 'Masaje clásico de cuerpo completo con movimientos largos para relajación total.' },
+    'deep-tissue': { name: 'Tejido Profundo', sub: '60 o 90 min', desc: 'Presión dirigida en capas musculares profundas para liberar tensión crónica.' },
+    'lymphatic-drainage': { name: 'Drenaje Linfático', sub: '60 o 90 min', desc: 'Técnica rítmica suave para estimular el flujo linfático y reducir inflamación.' },
+    'hot-stones': { name: 'Piedras Calientes', sub: '90 min', desc: 'Piedras de basalto calentadas que disuelven la tensión muscular profundamente.' },
+    'reflexology': { name: 'Reflexología', sub: '60 min', desc: 'Presión en zonas reflejas del pie para activar la sanación en todo el cuerpo.' },
+    'tired-legs': { name: 'Masaje para Piernas Cansadas', sub: '60 min', desc: 'Técnica especializada para aliviar pesadez y fatiga en las piernas.' },
+    'thai-massage': { name: 'Masaje Tailandés', sub: '90 min', desc: 'Estiramiento asistido tradicional y acupresión sobre colchoneta en el suelo.' },
+    'holistic-massage': { name: 'Masaje Holístico', sub: '90 min', desc: 'Sesión intuitiva de cuerpo completo combinando múltiples técnicas en armonía.' },
+    'herbal-pindas': { name: 'Masaje con Pindas de Hierbas', sub: '60 o 90 min', desc: 'Compresas de hierbas calientes aplicadas en músculos para alivio terapéutico.' },
+    'cupping-therapy': { name: 'Terapia de Ventosas', sub: '60 min', desc: 'Ventosas antiguas que elevan y liberan la fascia para mejorar la circulación.' },
+    'lomi-lomi': { name: 'Lomi Lomi', sub: '90 min', desc: 'Masaje hawaiano con antebrazo en movimientos continuos para restauración profunda.' },
+    'couples-spa': { name: 'Experiencia en Pareja · Spa Privado', sub: '2 horas · $118/persona', desc: 'Exfoliación corporal, facial detox, rejuvenecimiento y circuito spa privado para dos.' },
+    'facial-basic': { name: 'Facial Básico', sub: '60 min', desc: 'Limpieza profunda, exfoliación e hidratación adaptada a tu tipo de piel.' },
+    'facial-deluxe': { name: 'Facial Deluxe', sub: '90 min', desc: 'Mascarilla de chocolate, limpieza profunda, exfoliación, tonificación y masaje de pies.' },
+    'regenerative-body': { name: 'Regenerativo Cuerpo Completo', sub: '60 o 90 min', desc: 'Exfoliación corporal y envoltura de chocolate para una piel sedosa y luminosa.' },
+    'essence-special': { name: 'Essence Especial', sub: '90 min', desc: 'Exfoliación corporal, limpieza facial, aceites esenciales, aloe vera y envoltura de chocolate.' },
+    'nail-spa-1': { name: 'Nail Spa 1', sub: '90 min', desc: 'Manicure con facial y mascarilla de barro volcánico.' },
+    'nail-spa-2': { name: 'Nail Spa 2', sub: '90 min', desc: 'Pedicure con facial y mascarilla de barro volcánico.' },
+    'product-cacao-kit': { name: 'Kit de Ceremonia de Cacao', sub: 'GRADO CEREMONIAL', desc: 'Cacao ceremonial puro de nuestra finca, cosechado éticamente y molido en piedra.' },
+    'product-mud-mask': { name: 'Mascarilla de Barro Volcánico', sub: 'RITUAL DE PIEL', desc: 'Rico en minerales del suelo volcánico de Costa Rica. Profundamente purificante.' },
+    'product-essential-oil': { name: 'Mezcla de Aceite Esencial', sub: 'AROMATERAPIA', desc: 'Mezclado a mano con plantas nativas. Calmante, centrador y restaurador.' },
+    'product-sleep-tea': { name: 'Té de Hierbas para Dormir', sub: 'RITUAL NOCTURNO', desc: 'Hierbas orgánicas de nuestra bio finca. Valeriana, limonaria y pasiflora.' },
+    'product-sunscreen': { name: 'Protector Solar Natural FPS 50', sub: 'SEGURO PARA ARRECIFES', desc: 'Base de zinc, biodegradable. Seguro para el bosque lluvioso y tu piel.' },
+    'product-soap-set': { name: 'Set de Jabones Artesanales (3)', sub: 'COLECCIÓN ARTESANAL', desc: 'Prensado en frío con botánicos locales. Cacao, coco y cítricos.' },
+    'product-bird-guide': { name: 'Guía de Campo Observación de Aves', sub: 'FAUNA DE ARENAL', desc: 'Guía ilustrada de más de 120 especies encontradas alrededor de Essence Arenal.' },
+    'product-yoga-mat': { name: 'Tapete de Yoga de Bambú', sub: 'ECO FRIENDLY', desc: 'Base de caucho natural, superficie de fibra de bambú. Ligero y plegable.' }
   },
   fr: {
     'holistic-therapy': { name: 'Thérapie Holistique', sub: 'Sagesse ancestrale', desc: 'Retrouvez votre équilibre intérieur avec notre rituel signature.' },
@@ -1633,7 +1714,40 @@ const SERVICE_I18N = {
     'kayak-lake': { name: 'Kayak au Lac Arenal', sub: 'Aventure pagaie', desc: 'Parcourez en kayak l\'un des plus beaux lacs du Costa Rica.' },
     'breakfast-room': { name: 'Petit-déjeuner Ferme', sub: 'Livré en chambre', desc: 'Œufs frais, fruits locaux, pain artisanal et café bio.' },
     'picnic-basket': { name: 'Panier Pique-nique', sub: 'Sélection Bio Farm', desc: 'Fromages artisanaux, charcuterie, fruits de saison et vin local.' },
-    'smoothie-bowl': { name: 'Smoothie Bowl', sub: 'Mélange superfood', desc: 'Açaï, pitaya, granola et miel de nos ruches.' }
+    'smoothie-bowl': { name: 'Smoothie Bowl', sub: 'Mélange superfood', desc: 'Açaï, pitaya, granola et miel de nos ruches.' },
+    'temazcal': { name: 'Temazcal / Bain de Vapeur', sub: '180 min · $78/pers (min 2)', desc: 'Cérémonie ancestrale de purification profonde et renouveau spirituel.' },
+    'ionic-detox': { name: 'Détox Ionique', sub: '45 min', desc: 'Bain de pieds ionique éliminant les toxines et restaurant l\'équilibre cellulaire.' },
+    'reiki': { name: 'Reiki', sub: '60 min', desc: 'Énergie universelle canalisée pour libérer les blocages et restaurer le flux vital.' },
+    'guided-meditation': { name: 'Méditation Guidée', sub: '30 min', desc: 'Visualisation guidée et respiration pour une relaxation profonde et clarté mentale.' },
+    'sound-bath': { name: 'Bain de Son', sub: '60 min', desc: 'Bols tibétains et cristallins pour la réinitialisation du système nerveux.' },
+    'nlp-therapy': { name: 'PNL / Thérapie de Ligne du Temps', sub: '60 min · min 3 séances', desc: 'Programmation neuro-linguistique pour reprogrammer les croyances limitantes.' },
+    'forest-therapy': { name: 'Thérapie Forestière', sub: '2 heures', desc: 'Immersion guidée dans la forêt tropicale pour se ressourcer et se reconnecter.' },
+    'swedish-massage': { name: 'Massage Suédois', sub: '60 ou 90 min', desc: 'Massage classique corps entier aux longs mouvements fluides pour relaxation totale.' },
+    'deep-tissue': { name: 'Tissu Profond', sub: '60 ou 90 min', desc: 'Pression ciblée sur les couches musculaires profondes pour libérer les tensions chroniques.' },
+    'lymphatic-drainage': { name: 'Drainage Lymphatique', sub: '60 ou 90 min', desc: 'Technique rythmique douce pour stimuler la circulation lymphatique et réduire l\'inflammation.' },
+    'hot-stones': { name: 'Pierres Chaudes', sub: '90 min', desc: 'Pierres de basalte chauffées qui font fondre les tensions musculaires en profondeur.' },
+    'reflexology': { name: 'Réflexologie', sub: '60 min', desc: 'Pression sur les zones réflexes du pied pour activer la guérison globale du corps.' },
+    'tired-legs': { name: 'Massage Jambes Lourdes', sub: '60 min', desc: 'Technique spécialisée pour soulager la lourdeur et la fatigue dans les jambes.' },
+    'thai-massage': { name: 'Massage Thaïlandais', sub: '90 min', desc: 'Étirements assistés traditionnels et acupression sur tapis au sol.' },
+    'holistic-massage': { name: 'Massage Holistique', sub: '90 min', desc: 'Séance intuitive corps entier combinant plusieurs techniques en harmonie.' },
+    'herbal-pindas': { name: 'Massage aux Pindas d\'Herbes', sub: '60 ou 90 min', desc: 'Compresses d\'herbes chaudes appliquées sur les muscles pour un soulagement thérapeutique.' },
+    'cupping-therapy': { name: 'Ventouses Thérapeutiques', sub: '60 min', desc: 'Ventouses anciennes qui soulèvent et libèrent le fascia pour améliorer la circulation.' },
+    'lomi-lomi': { name: 'Lomi Lomi', sub: '90 min', desc: 'Massage hawaïen à l\'avant-bras avec longs mouvements continus pour une restauration profonde.' },
+    'couples-spa': { name: 'Expérience en Couple · Spa Privé', sub: '2 heures · $118/pers', desc: 'Gommage corps, détox facial, rajeunissement et circuit spa privé pour deux.' },
+    'facial-basic': { name: 'Soin Visage Basique', sub: '60 min', desc: 'Nettoyage en profondeur, exfoliation et hydratation selon votre type de peau.' },
+    'facial-deluxe': { name: 'Soin Visage Deluxe', sub: '90 min', desc: 'Masque au chocolat, nettoyage, gommage, tonification et massage des pieds.' },
+    'regenerative-body': { name: 'Corps Entier Régénérateur', sub: '60 ou 90 min', desc: 'Gommage corps et enveloppement au chocolat pour une peau soyeuse et lumineuse.' },
+    'essence-special': { name: 'Essence Spécial', sub: '90 min', desc: 'Gommage corps, nettoyage facial, huiles essentielles, aloe vera et enveloppement chocolat.' },
+    'nail-spa-1': { name: 'Nail Spa 1', sub: '90 min', desc: 'Manucure avec soin visage et masque de boue volcanique.' },
+    'nail-spa-2': { name: 'Nail Spa 2', sub: '90 min', desc: 'Pédicure avec soin visage et masque de boue volcanique.' },
+    'product-cacao-kit': { name: 'Kit Cérémonie Cacao', sub: 'GRADE CÉRÉMONIEL', desc: 'Cacao cérémoniel pur de notre ferme, récolté éthiquement et broyé à la pierre.' },
+    'product-mud-mask': { name: 'Masque de Boue Volcanique', sub: 'RITUEL PEAU', desc: 'Riche en minéraux du sol volcanique du Costa Rica. Profondément purifiant.' },
+    'product-essential-oil': { name: 'Mélange d\'Huile Essentielle', sub: 'AROMATHÉRAPIE', desc: 'Mélangé à la main à partir de plantes indigènes. Apaisant, ancrant et restaurateur.' },
+    'product-sleep-tea': { name: 'Tisane du Soir', sub: 'RITUEL NUIT', desc: 'Herbes biologiques de notre ferme. Valériane, citronnelle et passiflore.' },
+    'product-sunscreen': { name: 'Écran Solaire Naturel SPF 50', sub: 'RESPECTUEUX DES RÉCIFS', desc: 'Base de zinc, biodégradable. Sûr pour la forêt tropicale et votre peau.' },
+    'product-soap-set': { name: 'Coffret Savons Artisanaux (3)', sub: 'COLLECTION ARTISANALE', desc: 'Pressé à froid avec des botaniques locaux. Cacao, noix de coco et agrumes.' },
+    'product-bird-guide': { name: 'Guide Ornithologique', sub: 'FAUNE D\'ARENAL', desc: 'Guide illustré de plus de 120 espèces trouvées autour d\'Essence Arenal.' },
+    'product-yoga-mat': { name: 'Tapis de Yoga en Bambou', sub: 'ÉCO RESPONSABLE', desc: 'Base en caoutchouc naturel, surface en fibre de bambou. Léger et pliable.' }
   }
 };
 
@@ -1681,7 +1795,38 @@ function applyGuestLanguage() {
     ['bm-confirm-btn', tr('confirmRequest')],
     ['bm-cancel-btn', tr('cancel')],
     ['bm-therapist-label', tr('selectTherapist')],
-    ['guest-email-error', tr('invalidEmail')]
+    ['guest-email-error', tr('invalidEmail')],
+    ['bm-step1-continue', tr('continueBtn')],
+    ['bm-step2-title', tr('intakeStep2Title')],
+    ['bm-step2-sub', tr('intakeStep2Sub')],
+    ['bm-intake-medical', tr('intakeMedicalSection')],
+    ['bm-yn-label-medications', tr('intakeMedications')],
+    ['bm-yn-label-injuries', tr('intakeInjuries')],
+    ['bm-yn-label-pregnant', tr('intakePregnant')],
+    ['bm-yn-label-chronicpain', tr('intakeChronicPain')],
+    ['bm-yn-label-allergies', tr('intakeAllergies')],
+    ['bm-intake-massage', tr('intakeMassageSection')],
+    ['bm-pressure-label', tr('intakePressureLabel')],
+    ['bm-pressure-light', tr('pressureLight')],
+    ['bm-pressure-medium', tr('pressureMedium')],
+    ['bm-pressure-deep', tr('pressureDeep')],
+    ['bm-oils-label', tr('intakeOilsLabel')],
+    ['bm-oil-coconut', tr('oilCoconut')],
+    ['bm-oil-mineral', tr('oilMineral')],
+    ['bm-oil-almond', tr('oilAlmond')],
+    ['bm-oil-lavender', tr('oilLavender')],
+    ['bm-oil-jasmine', tr('oilJasmine')],
+    ['bm-oil-eucalyptus', tr('oilEucalyptus')],
+    ['bm-areas-label', tr('intakeAreasLabel')],
+    ['bm-goals-label', tr('intakeGoalsLabel')],
+    ['bm-step2-back', tr('back')],
+    ['bm-step2-continue', tr('continueBtn')],
+    ['bm-step3-title', tr('step3Title')],
+    ['bm-step3-room-label', tr('step3RoomLabel')],
+    ['bm-step3-name-label', tr('step3NameLabel')],
+    ['bm-label-whatsapp', tr('labelWhatsapp')],
+    ['bm-whatsapp-note', '· ' + tr('whatsappNote')],
+    ['bm-step3-back', tr('back')]
   ];
   mapText.forEach(([id, value]) => {
     const el = document.getElementById(id);
@@ -1692,10 +1837,19 @@ function applyGuestLanguage() {
   const nameEl = document.getElementById('guest-name');
   const emailEl = document.getElementById('guest-email');
   const notesEl = document.getElementById('bm-notes');
+  const areasEl = document.getElementById('bm-areas-avoid');
+  const goalsEl = document.getElementById('bm-goals');
+  const phoneEl = document.getElementById('bm-phone');
   if (roomEl) roomEl.placeholder = tr('roomPlaceholder');
   if (nameEl) nameEl.placeholder = tr('namePlaceholder');
   if (emailEl) emailEl.placeholder = tr('emailPlaceholder');
   if (notesEl) notesEl.placeholder = tr('notesPlaceholder');
+  if (areasEl) areasEl.placeholder = tr('intakeAreasPlaceholder');
+  if (goalsEl) goalsEl.placeholder = tr('intakeGoalsPlaceholder');
+  if (phoneEl) phoneEl.placeholder = tr('phonePlaceholder');
+  // Update all yn-btn Yes/No labels
+  document.querySelectorAll('.yn-btn[data-val="yes"]').forEach(b => { b.textContent = tr('btnYes'); });
+  document.querySelectorAll('.yn-btn[data-val="no"]').forEach(b => { b.textContent = tr('btnNo'); });
 
   const therapistSelect = document.getElementById('bm-therapist');
   if (therapistSelect && therapistSelect.options[0]) therapistSelect.options[0].textContent = tr('noPreference');
@@ -1860,13 +2014,18 @@ function renderCards(containerId, services, category) {
 function renderSpaCategories() {
   const c = document.getElementById('spa-cards');
   if (!c) return;
+  const cats = [
+    { id:'cat-therapies', icon:'🌟', nameKey:'catTherapies', subKey:'catTherapiesSub' },
+    { id:'cat-massages',  icon:'🤲', nameKey:'catMassages',  subKey:'catMassagesSub' },
+    { id:'cat-beauty',    icon:'💆', nameKey:'catBeauty',    subKey:'catBeautySub' },
+  ];
   c.innerHTML = `
     <div class="cat-grid">
-      ${SPA_CATEGORIES.map(cat => `
+      ${cats.map(cat => `
         <div class="cat-grid-item" onclick="selectSpaCategory('${cat.id}')">
           <span class="cat-grid-icon">${cat.icon}</span>
-          <div class="cat-grid-name">${cat.name}</div>
-          <div class="cat-grid-sub">${cat.sub}</div>
+          <div class="cat-grid-name">${tr(cat.nameKey)}</div>
+          <div class="cat-grid-sub">${tr(cat.subKey)}</div>
         </div>
       `).join('')}
     </div>`;
@@ -1874,15 +2033,15 @@ function renderSpaCategories() {
 
 function selectSpaCategory(catId) {
   const catMap = {
-    'cat-therapies': { services: THERAPIES_SERVICES, label: 'Therapies' },
-    'cat-massages':  { services: MASSAGES_SERVICES,  label: 'Massages' },
-    'cat-beauty':    { services: BEAUTY_SERVICES,    label: 'Beauty Treatments' },
+    'cat-therapies': { services: THERAPIES_SERVICES, label: tr('catTherapies') },
+    'cat-massages':  { services: MASSAGES_SERVICES,  label: tr('catMassages') },
+    'cat-beauty':    { services: BEAUTY_SERVICES,    label: tr('catBeauty') },
   };
   const cat = catMap[catId]; if (!cat) return;
   const c = document.getElementById('spa-cards');
   if (!c) return;
   c.innerHTML = `
-    <div class="svc-back-bar"><button class="spa-back-btn" onclick="renderSpaCategories()">&#8592; Volver</button></div>
+    <div class="svc-back-bar"><button class="spa-back-btn" onclick="renderSpaCategories()">${tr('back')}</button></div>
     <div class="svc-grid">
       ${cat.services.map(s => {
         const ls = localizeService(s);
@@ -1893,7 +2052,7 @@ function selectSpaCategory(catId) {
           <div class="svc-grid-sub">${ls.sub}</div>
           <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${ls.desc}</div>
           <div class="svc-grid-price">${s.price}</div>
-          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${cat.label}')">Reservar</button>
+          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${cat.label}')">${tr('bookBtn')}</button>
         </div>`;
       }).join('')}
     </div>`;
@@ -1953,7 +2112,7 @@ function renderTourGrid() {
           <div class="svc-grid-sub">${ls.sub}</div>
           <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${ls.desc}</div>
           <div class="svc-grid-price">${s.price}</div>
-          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${category}')">Reservar</button>
+          <button class="svc-grid-add" onclick="event.stopPropagation();openBookingModal(${sJson}, '${category}')">${tr('bookBtn')}</button>
         </div>`;
       }).join('')}
     </div>`;
@@ -1971,7 +2130,7 @@ function renderProductGrid() {
           <div class="svc-grid-sub">${p.sub}</div>
           <div style="font-size:.82rem;color:rgba(200,219,200,0.6);margin:.4rem 0 .5rem;line-height:1.5;">${p.desc}</div>
           <div class="svc-grid-price">$${p.price}</div>
-          <button class="svc-grid-add" onclick="event.stopPropagation();addProductToCart('${p.id}')">＋ Agregar</button>
+          <button class="svc-grid-add" onclick="event.stopPropagation();addProductToCart('${p.id}')">${tr('addToCartBtn')}</button>
         </div>
       `).join('')}
     </div>`;
