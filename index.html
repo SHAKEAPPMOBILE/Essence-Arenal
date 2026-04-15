@@ -352,6 +352,47 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .shift-time { font-size:11px; color:var(--text-muted); }
 .shift-role { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--admin-gold); margin-top:6px; }
 
+/* Team Schedule */
+.ts-wrap { padding:24px 28px; }
+.ts-week-nav { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+.ts-week-label { font-size:13px; color:var(--text); font-weight:500; flex:1; }
+.ts-nav-btn { background:#1a261a; border:1px solid #2b3d2b; border-radius:var(--radius-sm); color:var(--text-muted); width:28px; height:28px; min-height:28px; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }
+.ts-nav-btn:hover { border-color:#3d5a3d; color:var(--text); }
+.ts-view { animation:fadeUp .2s ease; }
+.ts-breadcrumb { display:flex; align-items:center; gap:6px; margin-bottom:16px; font-size:12px; color:var(--text-muted); }
+.ts-breadcrumb span { cursor:pointer; transition:color .15s; }
+.ts-breadcrumb span:hover { color:var(--admin-gold); }
+.ts-breadcrumb-sep { color:var(--text-dim); }
+.ts-section-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; color:var(--admin-gold); margin-bottom:4px; }
+.ts-section-sub { font-size:12px; color:var(--text-muted); margin-bottom:18px; }
+.ts-dept-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.ts-dept-card { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:18px 14px; cursor:pointer; transition:all .15s; text-align:center; }
+.ts-dept-card:hover { border-color:var(--admin-gold); background:#1a261a; }
+.ts-dept-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.ts-dept-count { font-size:11px; color:var(--text-muted); }
+.ts-emp-list { display:flex; flex-direction:column; gap:8px; }
+.ts-emp-row { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:12px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all .15s; }
+.ts-emp-row:hover { border-color:#3d5a3d; background:#1a261a; }
+.ts-emp-row.open { border-color:var(--admin-gold); }
+.ts-emp-name { font-size:13px; font-weight:600; color:var(--text); }
+.ts-emp-meta { font-size:11px; color:var(--text-muted); }
+.ts-emp-shifts { margin-top:8px; padding:8px 12px 0; }
+.ts-emp-shift-row { background:#0f180f; border:1px solid #2b3d2b; border-radius:var(--radius-sm); padding:7px 12px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.ts-shift-time-label { font-size:12px; color:var(--text); font-family:'DM Mono',monospace; letter-spacing:.04em; }
+.ts-shift-del { background:none; border:none; color:var(--text-dim); font-size:13px; cursor:pointer; padding:2px 6px; border-radius:4px; transition:color .15s; }
+.ts-shift-del:hover { color:#e8a0a0; }
+.ts-add-panel { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:18px 16px; margin-top:10px; }
+.ts-panel-title { font-size:13px; font-weight:600; color:var(--admin-gold); margin-bottom:14px; }
+.ts-form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.ts-form-group { margin-bottom:10px; }
+.ts-form-label { font-size:10px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; display:block; font-weight:500; }
+.ts-form-input { width:100%; background:#1a261a; border:1px solid #2b3d2b; border-radius:var(--radius-sm); padding:8px 10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:12px; outline:none; transition:border-color .2s; }
+.ts-form-input:focus { border-color:var(--admin-gold); }
+.ts-windows { margin-bottom:12px; }
+.ts-window-row { display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
+.ts-window-del { background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:4px 6px; border-radius:4px; min-height:unset; transition:color .15s; }
+.ts-window-del:hover { color:#e8a0a0; }
+
 /* POS tickets */
 .pos-container { max-height:500px; overflow-y:auto; }
 .pos-ticket { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:14px; margin-bottom:10px; font-family:'DM Mono',monospace; font-size:11px; }
@@ -963,7 +1004,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
         <span class="user-pill" id="user-pill" style="color:#fff;"></span>
         <button class="btn-ghost" id="btn-availability" onclick="openAvailabilityModal()" style="display:none">Disponibilidad</button>
         <button class="btn-ghost" onclick="openAuditModal()">Dashboard</button>
-        <button class="btn-add-activity" onclick="handlePlusButton()" title="Nueva actividad" aria-label="Nueva actividad">+</button>
       </div>
     </header>
 
@@ -1175,16 +1215,14 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
   <!-- SHIFTS -->
   <div id="asec-shifts" class="admin-section">
-    <div class="week-nav">
-      <div class="week-label" id="shifts-week-label"></div>
-      <div class="week-btns">
-        <button class="nav-btn" onclick="changeShiftsWeek(-1)">‹</button>
-        <button class="btn-today" onclick="shiftsGoToday()">Hoy</button>
-        <button class="nav-btn" onclick="changeShiftsWeek(1)">›</button>
+    <div class="ts-wrap">
+      <div class="ts-week-nav">
+        <div class="ts-week-label" id="ts-week-label"></div>
+        <button class="ts-nav-btn" onclick="tsChangeWeek(-1)">‹</button>
+        <button class="ts-nav-btn abtn-gold" onclick="tsGoToday()" style="width:auto;padding:0 10px;font-size:11px;letter-spacing:.5px;">Hoy</button>
+        <button class="ts-nav-btn" onclick="tsChangeWeek(1)">›</button>
       </div>
-    </div>
-    <div class="calendar-wrapper">
-      <div class="calendar-grid" id="shifts-grid"></div>
+      <div id="ts-view"></div>
     </div>
   </div>
 
@@ -2425,7 +2463,7 @@ function switchAdminTab(tab) {
   if (tab === 'calendar') { renderAdminCalendar(); }
   if (tab === 'restaurant-soft') renderRestaurantReplica();
   if (tab === 'staff') renderStaffTable();
-  if (tab === 'shifts') renderShiftsCalendar();
+  if (tab === 'shifts') renderTeamSchedule();
   // 'rooms' needs no render call — static placeholder
 }
 
@@ -3043,6 +3081,215 @@ function goToday() { weekOffset = 0; scheduleCalendarRender(); }
 function renderAdminCalendar() { scheduleCalendarRender(); }
 
 // ── SHIFTS ──────────────────────────────────────────────
+const TEAM = {
+  'Reception':    ['Fabián Acuña', 'Jesús Wolf'],
+  'Maintenance':  ['José David', 'Abel Jarquin', 'Franklin Selva', 'Keylor López', 'Fernando Lacayo'],
+  'Driver':       ['Mauricio Cabezas'],
+  'Ama de llaves':['Andrea Selva', 'Franciny Selva'],
+  'Restaurant':   ['Ana Garcia'],
+  'Kitchen':      ['Norlan Rodriguez', 'Gabriel Rodriguez', 'Gina Selva', 'Lesbia Solis'],
+  'Spa':          ['Daniela'],
+  'Yoga y Tours': ['Aurelio']
+};
+let teamShifts = JSON.parse(localStorage.getItem('essence_team_shifts') || '{}');
+let tsWeekOffset = 0;
+let tsActiveDept = null;
+let tsActiveEmp = null;
+
+const TS_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const TS_DAYS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function tsWeekStart(offset) {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  const day = d.getDay();
+  d.setDate(d.getDate() - day + offset * 7);
+  return d;
+}
+
+function tsFormatWeek(start) {
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  if (start.getMonth() === end.getMonth()) {
+    return `${start.getDate()} – ${end.getDate()} ${TS_MONTHS[start.getMonth()]} ${start.getFullYear()}`;
+  }
+  return `${start.getDate()} ${TS_MONTHS[start.getMonth()]} – ${end.getDate()} ${TS_MONTHS[end.getMonth()]} ${start.getFullYear()}`;
+}
+
+function tsChangeWeek(delta) {
+  tsWeekOffset += delta;
+  renderTeamSchedule();
+}
+
+function tsGoToday() {
+  tsWeekOffset = 0;
+  renderTeamSchedule();
+}
+
+function tsShiftsForEmpWeek(emp) {
+  const start = tsWeekStart(tsWeekOffset);
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().split('T')[0];
+    const dayShifts = (teamShifts[emp] || {})[key] || [];
+    dayShifts.forEach(s => out.push({ date: key, dayLabel: `${TS_DAYS[d.getDay()]} ${d.getDate()}`, ...s }));
+  }
+  return out;
+}
+
+function tsSaveShifts() {
+  localStorage.setItem('essence_team_shifts', JSON.stringify(teamShifts));
+}
+
+function tsDeleteShift(emp, date, shiftId) {
+  if (!teamShifts[emp] || !teamShifts[emp][date]) return;
+  teamShifts[emp][date] = teamShifts[emp][date].filter(s => s.id !== shiftId);
+  if (!teamShifts[emp][date].length) delete teamShifts[emp][date];
+  tsSaveShifts();
+  renderTeamSchedule();
+}
+
+function renderTeamSchedule() {
+  const label = document.getElementById('ts-week-label');
+  const view  = document.getElementById('ts-view');
+  if (!label || !view) return;
+  const start = tsWeekStart(tsWeekOffset);
+  label.textContent = `Semana del ${tsFormatWeek(start)}`;
+
+  if (!tsActiveDept) {
+    view.innerHTML = `
+      <div class="ts-section-title">Team Schedule</div>
+      <div class="ts-section-sub">Selecciona un departamento para ver el equipo</div>
+      <div class="ts-dept-grid">
+        ${Object.entries(TEAM).map(([dept, members]) => `
+          <div class="ts-dept-card" onclick="tsSelectDept('${dept.replace(/'/g,"\\'")}')">
+            <div class="ts-dept-name">${dept}</div>
+            <div class="ts-dept-count">${members.length} persona${members.length !== 1 ? 's' : ''}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    return;
+  }
+
+  const members = TEAM[tsActiveDept] || [];
+
+  let html = `
+    <div class="ts-breadcrumb">
+      <span onclick="tsSelectDept(null)">Team Schedule</span>
+      <span class="ts-breadcrumb-sep">›</span>
+      <span style="color:var(--text);">${tsActiveDept}</span>
+    </div>
+    <div class="ts-section-title">${tsActiveDept}</div>
+    <div class="ts-section-sub">${members.length} miembro${members.length !== 1 ? 's' : ''} · haz clic en un nombre para asignar turno</div>
+    <div class="ts-emp-list">`;
+
+  members.forEach(emp => {
+    const shifts = tsShiftsForEmpWeek(emp);
+    const open = tsActiveEmp === emp;
+    html += `
+      <div>
+        <div class="ts-emp-row ${open ? 'open' : ''}" onclick="tsSelectEmp('${emp.replace(/'/g,"\\'")}')">
+          <div>
+            <div class="ts-emp-name">${emp}</div>
+            <div class="ts-emp-meta">${shifts.length ? `${shifts.length} turno${shifts.length !== 1 ? 's' : ''} esta semana` : 'Sin turnos esta semana'}</div>
+          </div>
+          <span style="color:var(--text-muted);font-size:18px;">${open ? '▾' : '›'}</span>
+        </div>`;
+
+    if (open) {
+      if (shifts.length) {
+        html += `<div class="ts-emp-shifts">`;
+        shifts.forEach(s => {
+          html += `
+            <div class="ts-emp-shift-row">
+              <div>
+                <div style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;margin-bottom:2px;">${s.dayLabel}</div>
+                <div class="ts-shift-time-label">${s.start} – ${s.end}</div>
+              </div>
+              <button class="ts-shift-del" onclick="event.stopPropagation();tsDeleteShift('${emp.replace(/'/g,"\\'")}','${s.date}','${s.id}')">✕</button>
+            </div>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `
+        <div class="ts-add-panel" id="ts-panel-${emp.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'_')}">
+          <div class="ts-panel-title">＋ Agregar turno — ${emp}</div>
+          <div class="ts-form-group">
+            <label class="ts-form-label">Fecha</label>
+            <input class="ts-form-input" type="date" id="ts-date-${emp.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'_')}"
+              value="${new Date().toISOString().split('T')[0]}" min="${tsWeekStart(tsWeekOffset).toISOString().split('T')[0]}">
+          </div>
+          <div class="ts-windows" id="ts-windows-${emp.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'_')}">
+            <label class="ts-form-label">Horario</label>
+            <div class="ts-window-row">
+              <input class="ts-form-input" type="time" placeholder="Inicio" data-role="start" value="08:00">
+              <input class="ts-form-input" type="time" placeholder="Fin" data-role="end" value="17:00">
+              <span></span>
+            </div>
+          </div>
+          <button class="abtn" style="margin-bottom:10px;font-size:11px;" onclick="tsAddWindow('${emp.replace(/'/g,"\\'")}')">＋ Agregar otro horario</button>
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="abtn abtn-gold" onclick="tsSaveShiftForm('${emp.replace(/'/g,"\\'")}')">Guardar turno</button>
+          </div>
+        </div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  view.innerHTML = html;
+}
+
+function tsSelectDept(dept) {
+  tsActiveDept = dept;
+  tsActiveEmp = null;
+  renderTeamSchedule();
+}
+
+function tsSelectEmp(emp) {
+  tsActiveEmp = tsActiveEmp === emp ? null : emp;
+  renderTeamSchedule();
+}
+
+function tsAddWindow(emp) {
+  const safeId = emp.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'_');
+  const container = document.getElementById(`ts-windows-${safeId}`);
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'ts-window-row';
+  row.innerHTML = `
+    <input class="ts-form-input" type="time" placeholder="Inicio" data-role="start" value="08:00">
+    <input class="ts-form-input" type="time" placeholder="Fin" data-role="end" value="17:00">
+    <button class="ts-window-del" onclick="this.closest('.ts-window-row').remove()">✕</button>`;
+  container.appendChild(row);
+}
+
+function tsSaveShiftForm(emp) {
+  const safeId = emp.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'_');
+  const dateEl = document.getElementById(`ts-date-${safeId}`);
+  if (!dateEl || !dateEl.value) { showAdminToast('Selecciona una fecha'); return; }
+  const date = dateEl.value;
+  const windowContainer = document.getElementById(`ts-windows-${safeId}`);
+  const rows = windowContainer ? windowContainer.querySelectorAll('.ts-window-row') : [];
+  const windows = [];
+  rows.forEach(row => {
+    const start = row.querySelector('[data-role="start"]')?.value;
+    const end   = row.querySelector('[data-role="end"]')?.value;
+    if (start && end && start < end) windows.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, start, end });
+  });
+  if (!windows.length) { showAdminToast('Agrega al menos un horario válido'); return; }
+  if (!teamShifts[emp]) teamShifts[emp] = {};
+  if (!teamShifts[emp][date]) teamShifts[emp][date] = [];
+  teamShifts[emp][date].push(...windows);
+  tsSaveShifts();
+  showAdminToast(`✓ Turno guardado para ${emp}`);
+  renderTeamSchedule();
+}
+
 const SHIFTS_KEY = 'essense_shifts';
 let shifts = [];
 let shiftsWeekOffset = 0;
@@ -3053,8 +3300,8 @@ function loadShifts() {
 }
 function saveShifts() { localStorage.setItem(SHIFTS_KEY, JSON.stringify(shifts)); }
 
-function changeShiftsWeek(delta) { shiftsWeekOffset += delta; renderShiftsCalendar(); }
-function shiftsGoToday() { shiftsWeekOffset = 0; renderShiftsCalendar(); }
+function changeShiftsWeek(delta) { shiftsWeekOffset += delta; }
+function shiftsGoToday() { shiftsWeekOffset = 0; }
 
 function renderShiftsCalendar() {
   const weekStart = getWeekStart(shiftsWeekOffset);
