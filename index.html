@@ -783,7 +783,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     </div>
   </header>
   <nav class="portal-nav">
-    <button class="nav-tab" id="tab-spa" onclick="showGuestTab('spa')">🌺 Spa &amp; Massage</button>
+    <button class="nav-tab active" id="tab-spa" onclick="showGuestTab('spa')">🌺 Spa &amp; Massage</button>
     <button class="nav-tab" id="tab-room" onclick="showGuestTab('room')">🍃 Room Service</button>
     <button class="nav-tab" id="tab-tours" onclick="showGuestTab('tours')">🌋 Tours</button>
     <button class="nav-tab" id="tab-bookings" onclick="showGuestTab('bookings')">📋 My Bookings</button>
@@ -791,17 +791,8 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   </nav>
   <div class="portal-body">
 
-  <!-- HOME CATEGORY GRID -->
-  <div id="guest-home" class="portal-section active">
-    <div class="section-header">
-      <h2>Essence <em>Arenal</em></h2>
-      <p id="home-header-sub">Choose your experience</p>
-    </div>
-    <div id="home-cats"></div>
-  </div>
-
   <!-- SPA -->
-  <div id="guest-spa" class="portal-section">
+  <div id="guest-spa" class="portal-section active">
     <div class="section-header">
       <h2 id="spa-header-title">Spa &amp; <em>Wellness</em></h2>
       <p id="spa-header-sub">Nestled in the rainforest · Choose your experience</p>
@@ -858,12 +849,22 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   </div>
 
   <!-- MY CALENDAR -->
-  <div id="guest-mycal" class="portal-section">
-    <div class="section-header">
-      <h2 id="mycal-header-title">My <em>Calendar</em></h2>
-      <p id="mycal-header-sub">Your confirmed activity bookings</p>
+  <div id="guest-mycal" class="portal-section" style="padding:0;">
+    <div class="week-nav">
+      <div class="week-label" id="guest-cal-week-label"></div>
+      <div class="week-btns">
+        <button class="nav-btn" onclick="changeGuestCalWeek(-1)">‹</button>
+        <button class="btn-today" onclick="guestCalToday()">HOY</button>
+        <button class="nav-btn" onclick="changeGuestCalWeek(1)">›</button>
+      </div>
     </div>
-    <div id="guest-mycal-list"></div>
+    <div class="calendar-legend">
+      <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--hotel-color)"></span>Hotel</span>
+      <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--finca-color)"></span>Finca</span>
+    </div>
+    <div class="calendar-wrapper">
+      <div class="calendar-grid" id="guest-cal-grid"></div>
+    </div>
   </div>
 
   </div><!-- /.portal-body -->
@@ -1929,44 +1930,94 @@ function showGuestTab(tab) {
   if (tab === 'tours') renderTourGrid();
   if (tab === 'room') renderProductGrid();
   if (tab === 'bookings') loadMyBookings();
-  if (tab === 'mycal') loadGuestCalendar();
-  if (tab === 'home') renderHomeGrid();
+  if (tab === 'mycal') renderGuestCalendar();
 }
 
-function loadGuestCalendar() {
-  const listEl = document.getElementById('guest-mycal-list');
-  if (!listEl) return;
-  if (!guestSession) { listEl.innerHTML = '<div class="orders-empty-state">Please log in to view your calendar.</div>'; return; }
+let guestCalWeekOffset = 0;
+
+function changeGuestCalWeek(delta) {
+  guestCalWeekOffset += delta;
+  renderGuestCalendar();
+}
+
+function guestCalToday() {
+  guestCalWeekOffset = 0;
+  renderGuestCalendar();
+}
+
+function renderGuestCalendar() {
+  const weekLabelEl = document.getElementById('guest-cal-week-label');
+  const grid = document.getElementById('guest-cal-grid');
+  if (!weekLabelEl || !grid) return;
+
+  const weekStart = getWeekStart(guestCalWeekOffset);
+  weekLabelEl.textContent = formatWeekLabel(weekStart);
+
+  let calActivities = [];
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
-    const all = raw ? JSON.parse(raw) : [];
-    const mine = all.filter(a =>
-      a.source === 'guest_booking' &&
-      String(a.room || '').toLowerCase() === String(guestSession.room || '').toLowerCase() &&
-      String(a.guestName || '').toLowerCase() === String(guestSession.name || '').toLowerCase()
-    );
-    if (mine.length === 0) {
-      listEl.innerHTML = '<div class="orders-empty-state">No confirmed activity bookings yet.</div>';
-      return;
-    }
-    mine.sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.time || '').localeCompare(b.time || ''));
-    const typeEmoji = { soundbath:'🔔', temazcal:'🔥', night:'🌙', bird:'🦜', cacao:'🍫' };
-    listEl.innerHTML = mine.map(a => {
-      const emoji = typeEmoji[a.type] || '📅';
-      const dateLabel = a.date ? new Date(a.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
-      const timeLabel = a.time || '';
-      return `<div class="booking-item">
-        <div class="booking-info">
-          <div class="bi-name">${emoji} ${a.serviceName || a.client || ''}</div>
-          <div class="bi-detail">${dateLabel}${timeLabel ? ' · ' + timeLabel : ''}</div>
-          ${a.notes ? `<div class="bi-detail" style="margin-top:4px;font-style:italic;">"${a.notes}"</div>` : ''}
-        </div>
-        <div><span class="status-badge status-confirmed">confirmed</span></div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    listEl.innerHTML = '<div class="orders-empty-state">Could not load calendar.</div>';
+    calActivities = (raw ? JSON.parse(raw) : []).filter(a => a.source === 'guest_booking');
+  } catch(e) { calActivities = []; }
+
+  const activityMap = new Map();
+  calActivities.forEach(activity => {
+    const scopeKey = activity.weekly ? `weekly:${activity.dow}` : `date:${activity.date}`;
+    const key = `${scopeKey}|${activity.slot}`;
+    const bucket = activityMap.get(key) || [];
+    bucket.push(activity);
+    activityMap.set(key, bucket);
+  });
+
+  const fragment = document.createDocumentFragment();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const timeHeader = document.createElement('div');
+  timeHeader.className = 'col-header time-header';
+  fragment.appendChild(timeHeader);
+
+  for (let d = 0; d < 7; d++) {
+    const date = new Date(weekStart);
+    date.setDate(date.getDate() + d);
+    const isToday = date.getTime() === today.getTime();
+    const div = document.createElement('div');
+    div.className = `col-header${isToday ? ' today-col' : ''}`;
+    div.innerHTML = `<span class="day-name">${DAYS_SHORT[d]}</span><span class="day-num">${date.getDate()}</span>`;
+    fragment.appendChild(div);
   }
+
+  TIME_SLOTS.forEach(slot => {
+    const timeLabel = document.createElement('div');
+    timeLabel.className = 'time-label';
+    timeLabel.innerHTML = `<span>${slot.label}</span>`;
+    fragment.appendChild(timeLabel);
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + d);
+      const dateStr = date.toISOString().split('T')[0];
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      (activityMap.get(`weekly:${d}|${slot.id}`) || []).forEach(act => cell.appendChild(makeGuestPill(act)));
+      (activityMap.get(`date:${dateStr}|${slot.id}`) || []).forEach(act => cell.appendChild(makeGuestPill(act)));
+      fragment.appendChild(cell);
+    }
+  });
+
+  grid.replaceChildren(fragment);
+}
+
+function makeGuestPill(act) {
+  const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
+  const pill = document.createElement('div');
+  pill.className = `activity-pill color-${type.color}`;
+  pill.style.cursor = 'default';
+  const staffLine = [act.staff, act.by].filter(Boolean).join(', ');
+  pill.innerHTML = `
+    <span class="pill-time">${act.time || ''}<span class="pill-location ${getSectionClass(act.section)}">${getSectionLabel(act.section)}</span></span>
+    <span class="pill-name">${type.emoji} ${act.serviceName || type.name}${act.guestName ? ' · ' + act.guestName : ''}</span>
+    ${staffLine ? `<span class="pill-staff">${staffLine}</span>` : ''}
+  `;
+  return pill;
 }
 
 // Services data
@@ -2026,45 +2077,10 @@ const PRODUCT_ITEMS = [
 let productCart = [];
 
 function renderGuestServices() {
-  renderHomeGrid();
   renderSpaCategories();
   renderTourGrid();
   renderProductGrid();
   renderProductCart();
-}
-
-function renderHomeGrid() {
-  const c = document.getElementById('home-cats');
-  if (!c) return;
-  const langData = {
-    en: [
-      { tab:'spa',      icon:'🌺', name:'Spa & Massage',  sub:'Wellness · Treatments' },
-      { tab:'room',     icon:'🍃', name:'Products',        sub:'Shop · Room delivery' },
-      { tab:'tours',    icon:'🌋', name:'Tours',            sub:'Experiences · Adventures' },
-      { tab:'mycal',    icon:'📅', name:'My Calendar',     sub:'Your confirmed bookings' },
-    ],
-    es: [
-      { tab:'spa',      icon:'🌺', name:'Spa & Masajes',   sub:'Bienestar · Tratamientos' },
-      { tab:'room',     icon:'🍃', name:'Productos',        sub:'Tienda · Entrega al cuarto' },
-      { tab:'tours',    icon:'🌋', name:'Tours',             sub:'Experiencias · Aventuras' },
-      { tab:'mycal',    icon:'📅', name:'Mi Calendario',   sub:'Tus reservas confirmadas' },
-    ],
-    fr: [
-      { tab:'spa',      icon:'🌺', name:'Spa & Massage',   sub:'Bien-être · Soins' },
-      { tab:'room',     icon:'🍃', name:'Produits',         sub:'Boutique · Livraison chambre' },
-      { tab:'tours',    icon:'🌋', name:'Excursions',       sub:'Expériences · Aventures' },
-      { tab:'mycal',    icon:'📅', name:'Mon Calendrier',  sub:'Réservations confirmées' },
-    ],
-  };
-  const cats = langData[guestLang] || langData.en;
-  c.innerHTML = `<div class="cat-grid" style="grid-template-columns:repeat(2,1fr);">
-    ${cats.map(cat => `
-      <div class="cat-grid-item" onclick="showGuestTab('${cat.tab}')">
-        <span class="cat-grid-icon">${cat.icon}</span>
-        <div class="cat-grid-name">${cat.name}</div>
-        <div class="cat-grid-sub">${cat.sub}</div>
-      </div>`).join('')}
-  </div>`;
 }
 // ── Carousel ──────────────────────────────────────
 const carouselData = {};
