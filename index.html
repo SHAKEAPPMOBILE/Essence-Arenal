@@ -768,7 +768,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 <div id="screen-guest" class="screen">
   <header class="portal-header">
     <div class="portal-header-left">
-      <button class="logout-btn" id="guest-exit-btn" onclick="guestLogout()">← Exit</button>
       <div class="room-badge"><div class="dot"></div><span id="room-display">Room —</span></div>
     </div>
     <div class="portal-header-brand">Essence <span>Arenal</span></div>
@@ -1764,7 +1763,6 @@ function applyGuestLanguage() {
     ['label-email', tr('yourEmail')],
     ['guest-enter-btn', tr('enterWelcome')],
     ['guest-staff-access', tr('staffAccess')],
-    ['guest-exit-btn', tr('exit')],
     ['tab-spa', tr('spaTab')],
     ['tab-room', tr('roomTab')],
     ['tab-tours', tr('toursTab')],
@@ -2096,6 +2094,9 @@ function renderSpaCategories() {
           <div class="cat-grid-sub">${tr(cat.subKey)}</div>
         </div>
       `).join('')}
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;padding-bottom:1rem;">
+      <button onclick="guestLogout()" style="background:none;border:none;color:rgba(122,170,134,0.5);font-family:'Jost',sans-serif;font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;transition:color .3s;" onmouseover="this.style.color='var(--sage)'" onmouseout="this.style.color='rgba(122,170,134,0.5)'">← ${tr('exit').replace(/^←\s*/, '')}</button>
     </div>`;
 }
 
@@ -2146,8 +2147,10 @@ function showSpaCalendar() {
   const c = document.getElementById('spa-cards');
   if (!c) return;
   c.innerHTML = `
-    <div class="svc-back-bar"><button class="spa-back-btn" onclick="renderSpaCategories()">${tr('back')}</button></div>
-    <div style="margin-top:8px;">
+    <div style="padding:.4rem 0 .8rem;">
+      <button onclick="renderSpaCategories()" style="background:none;border:none;color:var(--sage);font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;padding:.3rem 0;display:inline-flex;align-items:center;gap:.4rem;transition:color .2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--sage)'">← ${tr('back')}</button>
+    </div>
+    <div>
       <div class="week-nav" style="border-radius:8px 8px 0 0;">
         <div class="week-label" id="guest-cal-week-label"></div>
         <div class="week-btns">
@@ -2156,12 +2159,10 @@ function showSpaCalendar() {
           <button class="nav-btn" onclick="changeGuestCalWeek(1)">›</button>
         </div>
       </div>
-      <div class="calendar-legend">
-        <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--hotel-color)"></span>Hotel</span>
-        <span class="calendar-legend-item"><span class="calendar-legend-swatch" style="background:var(--finca-color)"></span>Finca</span>
-      </div>
-      <div class="calendar-wrapper" style="padding:0 0 24px;">
-        <div class="calendar-grid" id="guest-cal-grid"></div>
+      <div style="overflow-y:auto;max-height:60vh;">
+        <div class="calendar-wrapper" style="padding:0 0 24px;">
+          <div class="calendar-grid" id="guest-cal-grid"></div>
+        </div>
       </div>
     </div>`;
   renderGuestCalendar();
