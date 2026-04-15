@@ -1010,6 +1010,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')">🍽️ Restaurant</div>
       <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Team</div>
       <div class="admin-tab" id="atab-rooms" onclick="switchAdminTab('rooms')">🏨 Rooms</div>
+      <div class="admin-tab" id="atab-activity" onclick="switchAdminTab('activity')">📋 Activity</div>
     </div>
   </div>
 
@@ -1225,6 +1226,15 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <div style="padding:2rem;text-align:center;color:var(--text-muted);">
       <h2>Rooms</h2>
       <p>Cloudbeds integration coming soon</p>
+    </div>
+  </div>
+
+  <!-- ACTIVITY HISTORY -->
+  <div id="asec-activity" class="admin-section">
+    <div class="inbox-wrap">
+      <div class="inbox-title">Activity History</div>
+      <div class="inbox-sub" style="margin-bottom:20px;">All guest bookings and activity sign-ups — newest first</div>
+      <div id="activity-history-list"></div>
     </div>
   </div>
 </div>
@@ -2834,9 +2844,75 @@ function switchAdminTab(tab) {
   if (tab === 'restaurant-soft') renderRestaurantReplica();
   if (tab === 'staff') renderStaffTable();
   if (tab === 'shifts') renderTeamSchedule();
+  if (tab === 'activity') renderActivityHistory();
   // 'rooms' needs no render call — static placeholder
 }
 
+
+function renderActivityHistory() {
+  const list = document.getElementById('activity-history-list');
+  if (!list) return;
+  let all = [];
+  try {
+    const raw = localStorage.getItem('essence_arenal_calendar_v1');
+    all = raw ? JSON.parse(raw) : [];
+  } catch(e) { all = []; }
+
+  // Collect rows: guest bookings + attendee sign-ups
+  const rows = [];
+  all.forEach(act => {
+    if (act.source === 'guest_booking') {
+      rows.push({
+        title: act.serviceName || act.client || '—',
+        guest: act.guestName || '—',
+        room: act.room || '—',
+        date: act.date || '',
+        time: act.time || '',
+        sortKey: act.id || 0,
+        kind: 'booking',
+      });
+    }
+    if (Array.isArray(act.attendees) && act.attendees.length > 0) {
+      const typeObj = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
+      const actTitle = act.serviceName || typeObj.name;
+      act.attendees.forEach(a => {
+        rows.push({
+          title: actTitle,
+          guest: a.name || '—',
+          room: a.room || '—',
+          date: act.date || '',
+          time: act.time || '',
+          sortKey: new Date(a.joinedAt || 0).getTime(),
+          kind: 'join',
+        });
+      });
+    }
+  });
+
+  if (rows.length === 0) {
+    list.innerHTML = '<div class="inbox-empty" style="padding:2rem 0;">No guest activity yet.</div>';
+    return;
+  }
+
+  rows.sort((a, b) => b.sortKey - a.sortKey);
+
+  list.innerHTML = rows.map(r => {
+    const dateLabel = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) : '';
+    const timeLabel = r.time || '';
+    const kindBadge = r.kind === 'join'
+      ? `<span class="status-badge status-approved" style="margin-left:6px;">joined</span>`
+      : '';
+    return `
+      <div class="booking-item">
+        <div class="booking-info" style="flex:1;">
+          <div class="bi-name">${r.title}${kindBadge}</div>
+          <div class="bi-detail">${r.guest} · Room ${r.room}</div>
+          ${dateLabel || timeLabel ? `<div class="bi-detail" style="margin-top:3px;">${[dateLabel, timeLabel].filter(Boolean).join(' · ')}</div>` : ''}
+        </div>
+        <div><span class="status-badge status-approved">confirmed</span></div>
+      </div>`;
+  }).join('');
+}
 
 function switchRestaurantTab(tab) {
   document.querySelectorAll('.restaurant-tab').forEach(t => t.classList.remove('active'));
@@ -4176,9 +4252,15 @@ function makePill(act) {
   pill.className = `activity-pill color-${type.color}`;
   pill.dataset.activityId = String(act.id);
   const staffLine = [act.staff, act.by].filter(Boolean).join(', ');
+  const displayTitle = act.serviceName || type.name;
+  const clientLabel = act.guestName
+    ? act.guestName
+    : act.client
+      ? (() => { const ns = act.client.split(',').map(n => n.trim()).filter(Boolean); return ns.length > 1 ? ns[0] + ' & ...' : ns[0]; })()
+      : '';
   pill.innerHTML = `
     <span class="pill-time">${act.time || ''}${act.weekly ? ' 🔁' : ''}<span class="pill-location ${getSectionClass(act.section)}">${getSectionLabel(act.section)}</span></span>
-    <span class="pill-name">${type.emoji} ${type.name}${act.client ? ' · ' + (() => { const ns = act.client.split(',').map(n => n.trim()).filter(Boolean); return ns.length > 1 ? ns[0] + ' & ...' : ns[0]; })() : ''}</span>
+    <span class="pill-name">${type.emoji} ${displayTitle}${clientLabel ? ' · ' + clientLabel : ''}</span>
     ${staffLine ? `<span class="pill-staff">${staffLine}</span>` : ''}
     <button class="pill-del" title="Eliminar" data-activity-id="${act.id}">✕</button>
   `;
