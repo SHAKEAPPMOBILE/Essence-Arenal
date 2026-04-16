@@ -2712,7 +2712,7 @@ function submitBooking() {
 
 function _ntfyBooking(body) {
   try {
-    fetch('https://ntfy.sh/Essence-Arenal-Bookings', {
+    fetch('https://ntfy.sh/essence-arenal-bookings', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -2721,8 +2721,10 @@ function _ntfyBooking(body) {
         'Tags': 'bell'
       },
       body
-    });
-  } catch(e) {}
+    })
+    .then(r => console.log('[ntfy] sent, status:', r.status))
+    .catch(e => console.warn('[ntfy] fetch error:', e));
+  } catch(e) { console.warn('[ntfy] error:', e); }
 }
 
 function _emojiForType(type) {
