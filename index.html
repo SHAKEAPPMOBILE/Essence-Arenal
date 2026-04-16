@@ -4318,6 +4318,13 @@ async function renderCalendar() {
     }
   });
   grid.replaceChildren(fragment);
+  // Scroll so today's column is the first visible column (keep 80px time labels in view)
+  requestAnimationFrame(() => {
+    const wrapper = grid.closest('.calendar-wrapper');
+    if (!wrapper) return;
+    const todayCol = grid.querySelector('.col-header.today-col');
+    wrapper.scrollLeft = todayCol ? Math.max(0, todayCol.offsetLeft - 80) : 0;
+  });
 }
 
 function makePill(act) {
