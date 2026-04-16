@@ -572,7 +572,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   display:grid; grid-template-columns:80px repeat(7,1fr); min-width:760px; border:1px solid rgba(26,46,26,0.12);
   border-radius:8px; overflow:hidden; background:var(--warm-white); box-shadow:0 2px 16px rgba(26,46,26,0.03);
 }
-#guest-cal-grid { grid-template-columns:80px repeat(4,1fr); min-width:360px; }
+#guest-cal-grid { grid-template-columns:80px repeat(4,minmax(110px,1fr)); min-width:520px; }
 .col-header {
   background:var(--forest); color:var(--mist); padding:12px 8px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);
 }
@@ -1976,7 +1976,7 @@ function showGuestCalTab() {
           <button class="nav-btn" onclick="changeGuestCalWeek(1)">&#8250;</button>
         </div>
       </div>
-      <div style="overflow-y:auto;max-height:62vh;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:auto;max-height:62vh;">
         <div class="calendar-wrapper" style="padding:0 0 24px;">
           <div class="calendar-grid" id="guest-cal-grid"></div>
         </div>
@@ -2366,7 +2366,7 @@ function showSpaCalendar() {
           <button class="nav-btn" onclick="changeGuestCalWeek(1)">›</button>
         </div>
       </div>
-      <div style="overflow-y:auto;max-height:60vh;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:auto;max-height:60vh;">
         <div class="calendar-wrapper" style="padding:0 0 24px;">
           <div class="calendar-grid" id="guest-cal-grid"></div>
         </div>
@@ -4394,7 +4394,7 @@ function openBookingInfoModal(activity) {
   const rows = [
     { label: 'Service', value: serviceName },
     { label: 'Date & Time', value: dateTime || '—' },
-    { label: 'Duration', value: `${activity.duration || 60} min` },
+    { label: 'Duration', value: activity.duration ? `${activity.duration} min` : '—' },
     { label: 'Guest Name', value: guestName },
     { label: 'Room Number', value: room },
     { label: 'Price', value: activity.price != null ? `$${activity.price}` : '—' },
@@ -4405,7 +4405,8 @@ function openBookingInfoModal(activity) {
   if (Array.isArray(activity.attendees) && activity.attendees.length > 0) {
     rows.push({ label: `Attendees (${activity.attendees.length})`, value: activity.attendees.map(a => `${a.name}${a.room ? ' · Room ' + a.room : ''}`).join('<br>') });
   }
-  host.innerHTML = rows.map(row => `
+  const visibleRows = rows.filter(r => r.value !== '—');
+  host.innerHTML = visibleRows.map(row => `
     <div class="booking-info-row">
       <div class="booking-info-label">${row.label}</div>
       <div class="booking-info-value">${row.value}</div>
