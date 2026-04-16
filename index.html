@@ -4432,7 +4432,14 @@ function openModal(act, dayIndex, slotId, dateStr) {
   const isEdit = act !== null;
   editingId = act ? act.id : null;
   pendingCell = act ? null : { dayIndex, slotId, dateStr };
-  document.getElementById('modal-title').textContent = isEdit ? 'Editar actividad' : 'Nueva actividad';
+  const _guestBookingTitle = (() => {
+    if (!act || act.source !== 'guest_booking') return null;
+    const tourTypes = new Set(['cacao', 'night', 'bird', 'kayak', 'cooking']);
+    if (tourTypes.has(act.type)) return 'Tours';
+    if (act.type === 'yoga') return 'Yoga';
+    return 'Spa & Massage';
+  })();
+  document.getElementById('modal-title').textContent = _guestBookingTitle || (isEdit ? 'Editar actividad' : 'Nueva actividad');
   document.getElementById('btn-save').textContent = isEdit ? 'Add' : 'Guardar';
   document.getElementById('btn-delete').style.display = isEdit ? 'block' : 'none';
 
@@ -4444,8 +4451,9 @@ function openModal(act, dayIndex, slotId, dateStr) {
   });
   const nameLabel = document.getElementById('modal-activity-label');
   if (nameLabel) {
-    nameLabel.textContent = isEdit ? getTypeNameById(act.type) : '';
-    nameLabel.style.display = isEdit ? 'block' : 'none';
+    const showLabel = isEdit && (!act || act.source !== 'guest_booking');
+    nameLabel.textContent = showLabel ? getTypeNameById(act.type) : '';
+    nameLabel.style.display = showLabel ? 'block' : 'none';
   }
 
   selectedType = act ? act.type : 'yoga';
