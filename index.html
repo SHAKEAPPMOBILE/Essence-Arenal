@@ -572,6 +572,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   display:grid; grid-template-columns:80px repeat(7,1fr); min-width:760px; border:1px solid rgba(26,46,26,0.12);
   border-radius:8px; overflow:hidden; background:var(--warm-white); box-shadow:0 2px 16px rgba(26,46,26,0.03);
 }
+#guest-cal-grid { grid-template-columns:80px repeat(4,1fr); min-width:360px; }
 .col-header {
   background:var(--forest); color:var(--mist); padding:12px 8px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);
 }
@@ -1994,8 +1995,15 @@ function renderGuestCalendar() {
   const grid = document.getElementById('guest-cal-grid');
   if (!weekLabelEl || !grid) return;
 
-  const weekStart = getWeekStart(guestCalWeekOffset);
-  weekLabelEl.textContent = formatWeekLabel(weekStart);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // Start from today offset by guestCalWeekOffset * 4 days
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() + guestCalWeekOffset * 4);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 3);
+  const fmt = { month: 'short', day: 'numeric' };
+  weekLabelEl.textContent = startDate.toLocaleDateString(undefined, fmt) + ' – ' + endDate.toLocaleDateString(undefined, fmt);
 
   let calActivities = [];
   try {
@@ -2019,20 +2027,20 @@ function renderGuestCalendar() {
   });
 
   const fragment = document.createDocumentFragment();
-  const today = new Date();
-  today.setHours(0,0,0,0);
 
   const timeHeader = document.createElement('div');
   timeHeader.className = 'col-header time-header';
   fragment.appendChild(timeHeader);
 
-  for (let d = 0; d < 7; d++) {
-    const date = new Date(weekStart);
-    date.setDate(date.getDate() + d);
+  // 4 day column headers starting from startDate
+  for (let d = 0; d < 4; d++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + d);
     const isToday = date.getTime() === today.getTime();
+    const dow = date.getDay();
     const div = document.createElement('div');
     div.className = `col-header${isToday ? ' today-col' : ''}`;
-    div.innerHTML = `<span class="day-name">${DAYS_SHORT[d]}</span><span class="day-num">${date.getDate()}</span>`;
+    div.innerHTML = `<span class="day-name">${DAYS_SHORT[dow]}</span><span class="day-num">${date.getDate()}</span>`;
     fragment.appendChild(div);
   }
 
@@ -2041,13 +2049,15 @@ function renderGuestCalendar() {
     timeLabel.className = 'time-label';
     timeLabel.innerHTML = `<span>${slot.label}</span>`;
     fragment.appendChild(timeLabel);
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(weekStart);
-      date.setDate(date.getDate() + d);
+    for (let d = 0; d < 4; d++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + d);
+      const dow = date.getDay();
       const dateStr = date.toISOString().split('T')[0];
       const cell = document.createElement('div');
       cell.className = 'day-cell';
-      (activityMap.get(`weekly:${d}|${slot.id}`) || []).forEach(act => cell.appendChild(makeGuestPill(act)));
+      // Use actual day-of-week for weekly events
+      (activityMap.get(`weekly:${dow}|${slot.id}`) || []).forEach(act => cell.appendChild(makeGuestPill(act)));
       (activityMap.get(`date:${dateStr}|${slot.id}`) || []).forEach(act => cell.appendChild(makeGuestPill(act)));
       fragment.appendChild(cell);
     }
