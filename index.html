@@ -2696,9 +2696,59 @@ function submitBooking() {
     document.getElementById('bm-success-service').textContent = service.name;
     document.getElementById('bm-success-datetime').textContent = [dateDisplay, timeStr].filter(Boolean).join(' · ');
     successEl.style.display = 'block';
+    launchEmojiShower(service.icon || _emojiForType(calType));
   }
 }
 
+function _emojiForType(type) {
+  const map = {
+    massage:'💆', beauty:'💅', yoga:'🧘', soundbath:'🎵', temazcal:'🔥',
+    cacao:'🍫', bird:'🐦', night:'🌙', kayak:'🚣', foresttherapy:'🌿',
+    therapy:'✨', meditation:'🪷', detox:'💧', other:'🌺'
+  };
+  return map[type] || '🌺';
+}
+
+function launchEmojiShower(emoji) {
+  const COUNT = 24;
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9999;';
+  document.body.appendChild(container);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes emojifall {
+      0%   { transform: translateY(-60px) rotate(var(--r0)); opacity:1; }
+      80%  { opacity:1; }
+      100% { transform: translateY(110vh) rotate(var(--r1)); opacity:0; }
+    }
+    .emoji-drop {
+      position:absolute;
+      top:0;
+      animation: emojifall var(--dur) ease-in forwards;
+      animation-delay: var(--delay);
+      will-change: transform;
+      user-select:none;
+    }
+  `;
+  document.head.appendChild(style);
+
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('span');
+    el.className = 'emoji-drop';
+    const size  = (1.2 + Math.random() * 1.3).toFixed(2);
+    const left  = (Math.random() * 96).toFixed(1);
+    const dur   = (1.8 + Math.random() * 1.6).toFixed(2);
+    const delay = (Math.random() * 0.9).toFixed(2);
+    const r0    = (Math.random() * 60 - 30).toFixed(0);
+    const r1    = (parseInt(r0) + (Math.random() * 120 - 60)).toFixed(0);
+    el.textContent = emoji;
+    el.style.cssText = `left:${left}%;font-size:${size}rem;--dur:${dur}s;--delay:${delay}s;--r0:${r0}deg;--r1:${r1}deg;`;
+    container.appendChild(el);
+  }
+
+  setTimeout(() => { container.remove(); style.remove(); }, 3500);
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
