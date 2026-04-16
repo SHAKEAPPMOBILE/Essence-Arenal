@@ -1876,45 +1876,6 @@ function guestLogout() {
   showScreen('screen-landing');
 }
 
-function launchLogoRain() {
-  const logoImg = document.querySelector('.login-logo img');
-  if (!logoImg) return;
-  const src = logoImg.src;
-  const COUNT = 18;
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9999;';
-  document.body.appendChild(container);
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes logofall {
-      0%   { transform: translateY(-70px) rotate(var(--r0)); opacity:.9; }
-      80%  { opacity:.85; }
-      100% { transform: translateY(110vh) rotate(var(--r1)); opacity:0; }
-    }
-    .logo-drop {
-      position:absolute; top:0;
-      animation: logofall var(--dur) ease-in forwards;
-      animation-delay: var(--delay);
-      will-change: transform;
-    }
-  `;
-  document.head.appendChild(style);
-  for (let i = 0; i < COUNT; i++) {
-    const el = document.createElement('img');
-    el.className = 'logo-drop';
-    el.src = src;
-    const size  = (40 + Math.random() * 14).toFixed(0);
-    const left  = (Math.random() * 94).toFixed(1);
-    const dur   = (1.1 + Math.random() * 0.9).toFixed(2);
-    const delay = (Math.random() * 0.6).toFixed(2);
-    const r0    = (Math.random() * 40 - 20).toFixed(0);
-    const r1    = (parseInt(r0) + (Math.random() * 80 - 40)).toFixed(0);
-    el.style.cssText = `left:${left}%;width:${size}px;--dur:${dur}s;--delay:${delay}s;--r0:${r0}deg;--r1:${r1}deg;filter:invert(1);`;
-    container.appendChild(el);
-  }
-  setTimeout(() => { container.remove(); style.remove(); }, 2500);
-}
-
 function guestLogin() {
   var r = document.getElementById("guest-room");
   var n = document.getElementById("guest-name");
@@ -1923,7 +1884,6 @@ function guestLogin() {
   guestSession = { room: room, name: name };
   var rd = document.getElementById("room-display");
   if (rd) rd.textContent = "Room " + room + " - " + name;
-  launchLogoRain();
   showScreen("screen-guest");
   renderGuestServices();
 }
