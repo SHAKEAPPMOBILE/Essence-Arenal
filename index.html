@@ -2011,7 +2011,7 @@ function renderGuestCalendar() {
     calActivities = raw ? JSON.parse(raw) : [];
   } catch(e) { calActivities = []; }
 
-  const GUEST_VISIBLE_TYPES = new Set(['cacao','temazcal','soundbath','night','bird']);
+  const GUEST_VISIBLE_TYPES = new Set(['cacao','temazcal','soundbath','night','bird','yoga']);
   const visibleActivities = calActivities.filter(a => GUEST_VISIBLE_TYPES.has(a.type));
 
   const activityMap = new Map();
@@ -4787,7 +4787,7 @@ document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('c
 document.querySelectorAll('.calendar-modal-overlay').forEach(el => el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); }));
 
 function seedYogaEvents() {
-  if (localStorage.getItem('essence_yoga_seeded_v1')) return;
+  if (localStorage.getItem('essence_yoga_seeded_v3')) return;
   try {
     const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
     const all = raw ? JSON.parse(raw) : [];
@@ -4819,12 +4819,53 @@ function seedYogaEvents() {
       }
     }
     localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(all));
-    localStorage.setItem('essence_yoga_seeded_v1', '1');
+    localStorage.setItem('essence_yoga_seeded_v3', '1');
   } catch(e) { console.warn('[yoga-seed]', e); }
+}
+
+function seedTourEvents() {
+  if (localStorage.getItem('essence_tours_seeded_v1')) return;
+  try {
+    const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
+    const all = raw ? JSON.parse(raw) : [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const idBase = Date.now() + 100000;
+    // dow sets: Mon=1,Thu=4 | Tue=2,Fri=5 | Wed=3,Sat=6 | Tue=2,Sat=6 | Sun=0
+    const schedule = [
+      { name: 'Cacao Tour',  type: 'cacao',    slot: 'midday',   time: '10:00', dows: [1,4] },
+      { name: 'Bird Watch',  type: 'bird',      slot: 'morning',  time: '06:00', dows: [2,5] },
+      { name: 'Night Tour',  type: 'night',     slot: 'evening',  time: '19:00', dows: [3,6] },
+      { name: 'Temazcal',    type: 'temazcal',  slot: 'afternoon',time: '17:00', dows: [2,6] },
+      { name: 'Sound Bath',  type: 'soundbath', slot: 'afternoon',time: '17:00', dows: [0]   },
+    ];
+    let idx = 0;
+    for (let i = 0; i < 60; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const dow = d.getDay();
+      const dateStr = d.toISOString().split('T')[0];
+      schedule.forEach((ev, si) => {
+        if (ev.dows.includes(dow)) {
+          all.push({
+            id: idBase + i * 100 + si,
+            section: 'hotel', dow: dow, slot: ev.slot, date: dateStr,
+            type: ev.type, time: ev.time, duration: 90,
+            serviceName: ev.name, client: '', staff: '', by: '', notes: '',
+            weekly: false, source: 'seed', status: 'confirmed',
+          });
+          idx++;
+        }
+      });
+    }
+    localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(all));
+    localStorage.setItem('essence_tours_seeded_v1', '1');
+  } catch(e) { console.warn('[tours-seed]', e); }
 }
 
 window.addEventListener('load', () => {
   seedYogaEvents();
+  seedTourEvents();
   updateLanguageSwitcherVisibility();
   applyGuestLanguage();
   initTimePicker();
