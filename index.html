@@ -1309,11 +1309,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
           <option value="finca">Finca</option>
         </select>
       </div>
-      <div class="calendar-form-group">
+      <div id="modal-section-client" class="calendar-form-group">
         <label class="calendar-form-label">Cliente / grupo</label>
         <input class="calendar-form-input" type="text" id="f-client" placeholder="Nombre del cliente o grupo" autocomplete="new-password">
         <div class="client-pills-container" id="client-pills"></div>
       </div>
+      <div id="modal-guest-booking-details" style="display:none;"></div>
       <div id="modal-section-staff" class="calendar-form-row">
         <div class="calendar-form-group">
           <label class="calendar-form-label">Guía / Terapeuta</label>
@@ -4387,9 +4388,53 @@ function openModal(act, dayIndex, slotId, dateStr) {
   document.getElementById('f-weekly').checked = act ? !!act.weekly : false;
   renderClientPills(isEdit ? act.id : null);
   if (!isEdit) refreshAssignmentWarning();
+
+  // Guest booking read-only view
+  const isGuestBooking = act && act.source === 'guest_booking';
+  const clientSection = document.getElementById('modal-section-client');
+  const guestDetailsEl = document.getElementById('modal-guest-booking-details');
+  const btnSaveEl = document.getElementById('btn-save');
+  if (isGuestBooking) {
+    if (clientSection) clientSection.style.display = 'none';
+    if (btnSaveEl) btnSaveEl.style.display = 'none';
+    if (guestDetailsEl) { guestDetailsEl.style.display = ''; guestDetailsEl.innerHTML = buildGuestBookingDetails(act); }
+  } else {
+    if (clientSection) clientSection.style.display = '';
+    if (btnSaveEl) btnSaveEl.style.display = '';
+    if (guestDetailsEl) { guestDetailsEl.style.display = 'none'; guestDetailsEl.innerHTML = ''; }
+  }
+
   document.getElementById('modal-overlay').classList.add('open');
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function buildGuestBookingDetails(act) {
+  const intake = act.intake_form ? (function() { try { return JSON.parse(act.intake_form); } catch(e) { return {}; } })() : {};
+  const dateStr = act.date ? new Date(act.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '—';
+  const rows = [
+    { label: 'Service', value: act.serviceName || '—' },
+    { label: 'Guest Name', value: act.guestName || '—' },
+    { label: 'Room', value: act.room || '—' },
+    { label: 'Date', value: dateStr },
+    { label: 'Time', value: act.time || '—' },
+  ];
+  // Intake: only show fields with non-empty / non-default values
+  const ynFields = [
+    { key: 'medications', label: 'Medications' },
+    { key: 'injuries', label: 'Injuries' },
+    { key: 'pregnant', label: 'Pregnant' },
+    { key: 'chronic_pain', label: 'Chronic Pain' },
+    { key: 'medical_allergies', label: 'Allergies' },
+  ];
+  ynFields.forEach(function(f) { if (intake[f.key] === 'yes') rows.push({ label: f.label, value: 'Yes' }); });
+  if (intake.pressure && intake.pressure !== 'medium') rows.push({ label: 'Pressure Preference', value: intake.pressure.charAt(0).toUpperCase() + intake.pressure.slice(1) });
+  if (intake.oil_sensitivities && intake.oil_sensitivities !== 'none') rows.push({ label: 'Oils to Avoid', value: intake.oil_sensitivities });
+  if (intake.areas_to_avoid) rows.push({ label: 'Areas to Avoid', value: intake.areas_to_avoid });
+  if (intake.treatment_goals) rows.push({ label: 'Treatment Goals', value: intake.treatment_goals });
+  return '<div class="booking-info-grid">' + rows.map(function(r) {
+    return '<div class="booking-info-row"><div class="booking-info-label">' + r.label + '</div><div class="booking-info-value">' + r.value + '</div></div>';
+  }).join('') + '</div>';
+}
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 
 function saveActivity() {
