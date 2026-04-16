@@ -978,7 +978,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <div id="bm-step-3" style="display:none;">
       <div class="modal-title" id="bm-step3-title">Your Details</div>
       <div class="field-group"><label id="bm-step3-room-label" for="bm-room">Room Number</label><input type="text" id="bm-room" required placeholder="e.g. 12"></div>
-      <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="First name"></div>
+      <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="Full Name"></div>
       <div class="modal-actions" style="justify-content:space-between;">
         <button class="btn-ghost" id="bm-step3-back" onclick="bmGoStep3Back()">← Back</button>
         <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Booking</button>
@@ -1550,7 +1550,7 @@ const GUEST_I18N = {
     addToRoom: 'ADD TO ROOM', requestDelivery: 'Request Delivery', cartEmpty: 'No products added yet.',
     roomNumber: 'ROOM NUMBER', yourName: 'YOUR NAME', yourEmail: 'YOUR EMAIL', enterWelcome: 'Enter · Bienvenido', staffAccess: '⚿ Staff access',
     guestSubtitle: 'Guest Portal · Please enter your details',
-    roomPlaceholder: 'e.g. 12', namePlaceholder: 'First name', emailPlaceholder: 'your@email.com',
+    roomPlaceholder: 'e.g. 12', namePlaceholder: 'Full Name', emailPlaceholder: 'your@email.com',
     notesPlaceholder: 'Allergies, preferences, anything we should know…',
     roomDisplay: 'Room',
     spaHeaderTitle: 'Spa & <em>Wellness</em>', spaHeaderSub: 'Nestled in the rainforest · Choose your experience',
@@ -1585,7 +1585,7 @@ const GUEST_I18N = {
     addToRoom: 'AGREGAR', requestDelivery: 'Solicitar entrega', cartEmpty: 'Aún no hay productos agregados.',
     roomNumber: 'NÚMERO DE CUARTO', yourName: 'TU NOMBRE', yourEmail: 'TU EMAIL', enterWelcome: 'ENTRAR · BIENVENIDO', staffAccess: '⚿ ACCESO STAFF',
     guestSubtitle: 'Portal de huéspedes · Ingresa tus datos',
-    roomPlaceholder: 'ej. 12', namePlaceholder: 'Nombre', emailPlaceholder: 'tu@email.com',
+    roomPlaceholder: 'ej. 12', namePlaceholder: 'Nombre completo', emailPlaceholder: 'tu@email.com',
     notesPlaceholder: 'Alergias, preferencias, cualquier detalle…',
     roomDisplay: 'Cuarto',
     spaHeaderTitle: 'Spa & <em>Bienestar</em>', spaHeaderSub: 'En el corazón del bosque lluvioso · Elige tu experiencia',
@@ -1620,7 +1620,7 @@ const GUEST_I18N = {
     addToRoom: 'AJOUTER', requestDelivery: 'Demander livraison', cartEmpty: 'Aucun produit ajouté pour le moment.',
     roomNumber: 'NUMÉRO DE CHAMBRE', yourName: 'VOTRE NOM', yourEmail: 'VOTRE EMAIL', enterWelcome: 'ENTRER · BIENVENUE', staffAccess: '⚿ ACCÈS STAFF',
     guestSubtitle: 'Portail invité · Veuillez saisir vos informations',
-    roomPlaceholder: 'ex. 12', namePlaceholder: 'Prénom', emailPlaceholder: 'votre@email.com',
+    roomPlaceholder: 'ex. 12', namePlaceholder: 'Nom complet', emailPlaceholder: 'votre@email.com',
     notesPlaceholder: 'Allergies, préférences, tout détail utile…',
     roomDisplay: 'Chambre',
     spaHeaderTitle: 'Spa & <em>Bien-être</em>', spaHeaderSub: 'Au cœur de la forêt tropicale · Choisissez votre expérience',
@@ -2160,7 +2160,7 @@ function showGuestJoinForm() {
       </div>
       <div style="margin-bottom:1.8rem;">
         <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(200,219,200,0.5);display:block;margin-bottom:.4rem;">Your Name</label>
-        <input type="text" id="join-name" value="${prefixName}" placeholder="First name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(122,170,134,0.25);border-radius:8px;padding:.6rem .9rem;color:#cddccd;font-size:.9rem;outline:none;">
+        <input type="text" id="join-name" value="${prefixName}" placeholder="Full Name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(122,170,134,0.25);border-radius:8px;padding:.6rem .9rem;color:#cddccd;font-size:.9rem;outline:none;">
       </div>
       <div id="join-success" style="display:none;text-align:center;padding:1rem 0 1.5rem;">
         <div style="font-size:2rem;margin-bottom:.4rem;">🎉</div>
