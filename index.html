@@ -205,22 +205,22 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .modal-overlay.open { display:flex; }
 .booking-modal { background:#0f1f0f; border:1px solid rgba(122,170,134,0.25); border-radius:16px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; padding:2.5rem; position:relative; animation:fadeUp .4s ease; }
 /* Drum / roller time picker */
-.drum-picker-wrap { position:relative; display:flex; gap:10px; margin-top:.5rem; }
-.drum-col { flex:1; height:84px; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; border:1px solid rgba(45,74,45,0.18); border-radius:12px; background:#f5f0e8; }
+.drum-picker-wrap { position:relative; display:flex; gap:6px; margin-top:.5rem; }
+.drum-col { width:72px; flex:none; height:72px; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; border:1px solid rgba(45,74,45,0.18); border-radius:10px; background:#f5f0e8; }
 .drum-col::-webkit-scrollbar { display:none; }
-.drum-spacer { height:28px; }
-.drum-item { scroll-snap-align:center; height:28px; display:flex; align-items:center; justify-content:center; font-family:'Jost',sans-serif; font-size:.82rem; letter-spacing:.05em; color:rgba(45,74,45,0.25); cursor:pointer; user-select:none; transition:color .12s; }
-.drum-item.active { color:#2d4a2d; font-size:.88rem; font-weight:500; }
-.drum-selection-bar { position:absolute; left:0; right:0; top:calc(50% - 14px); height:28px; border-top:1px solid rgba(45,74,45,0.18); border-bottom:1px solid rgba(45,74,45,0.18); background:rgba(45,74,45,0.05); pointer-events:none; z-index:2; }
+.drum-spacer { height:24px; }
+.drum-item { scroll-snap-align:center; height:24px; display:flex; align-items:center; justify-content:center; font-family:'Jost',sans-serif; font-size:.72rem; letter-spacing:.04em; color:rgba(45,74,45,0.25); cursor:pointer; user-select:none; transition:color .12s; }
+.drum-item.active { color:#2d4a2d; font-size:.78rem; font-weight:500; }
+.drum-selection-bar { position:absolute; left:0; right:0; top:calc(50% - 12px); height:24px; border-top:1px solid rgba(45,74,45,0.18); border-bottom:1px solid rgba(45,74,45,0.18); background:rgba(45,74,45,0.05); pointer-events:none; z-index:2; }
 /* Booking modal 2-step flow */
-.bm-steps { display:flex; align-items:center; justify-content:flex-start; margin-bottom:1.8rem; padding-right:2.5rem; }
+.bm-steps { display:flex; align-items:center; justify-content:flex-start; gap:12px; margin-bottom:1.8rem; }
 .bm-step { display:flex; flex-direction:column; align-items:center; gap:.28rem; }
 .bm-step-num { width:26px; height:26px; border-radius:50%; border:1px solid rgba(45,74,45,0.25); background:#f5f0e8; display:flex; align-items:center; justify-content:center; font-family:'Jost',sans-serif; font-size:.68rem; color:rgba(45,74,45,0.35); transition:all .3s; }
 .bm-step.active .bm-step-num { border-color:#2d4a2d; background:#2d4a2d; color:#f5f0e8; }
 .bm-step.done .bm-step-num { border-color:#4a7a3a; background:#4a7a3a; color:#f5f0e8; }
 .bm-step-label { font-size:.5rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(45,74,45,0.3); transition:color .3s; }
 .bm-step.active .bm-step-label, .bm-step.done .bm-step-label { color:rgba(45,74,45,0.6); }
-.bm-step-line { flex:1; height:1px; background:rgba(45,74,45,0.12); min-width:40px; margin:0 .9rem .85rem; }
+.bm-step-line { width:16px; flex:none; height:1px; background:rgba(45,74,45,0.2); margin-bottom:.85rem; }
 .bm-time-display { font-size:.68rem; color:var(--sage); letter-spacing:.08em; margin-top:7px; }
 /* Intake form */
 .intake-section { margin-bottom:1.5rem; }
@@ -2561,12 +2561,12 @@ function initBookingDrum() {
     buildCol(minCol, BM_MINUTES);
 
     hourCol.addEventListener('scroll', () => {
-      bmSelectedHourIdx = Math.max(0, Math.min(BM_HOURS.length - 1, Math.round(hourCol.scrollTop / 28)));
+      bmSelectedHourIdx = Math.max(0, Math.min(BM_HOURS.length - 1, Math.round(hourCol.scrollTop / 24)));
       _updateDrumHighlights();
       _updateBmTimeDisplay();
     });
     minCol.addEventListener('scroll', () => {
-      bmSelectedMinuteIdx = Math.max(0, Math.min(BM_MINUTES.length - 1, Math.round(minCol.scrollTop / 28)));
+      bmSelectedMinuteIdx = Math.max(0, Math.min(BM_MINUTES.length - 1, Math.round(minCol.scrollTop / 24)));
       _updateDrumHighlights();
       _updateBmTimeDisplay();
     });
@@ -2576,8 +2576,8 @@ function initBookingDrum() {
   bmSelectedHourIdx = 3;
   bmSelectedMinuteIdx = 0;
   requestAnimationFrame(() => {
-    hourCol.scrollTop = bmSelectedHourIdx * 28;
-    minCol.scrollTop  = bmSelectedMinuteIdx * 28;
+    hourCol.scrollTop = bmSelectedHourIdx * 24;
+    minCol.scrollTop  = bmSelectedMinuteIdx * 24;
     _updateDrumHighlights();
     _updateBmTimeDisplay();
   });
