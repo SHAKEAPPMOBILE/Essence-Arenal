@@ -294,26 +294,7 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .admin-section { display:none; background:#0f180f; }
 .admin-section.active { display:block; }
 
-/* Inbox */
-.inbox-wrap { padding:24px 28px; }
-.inbox-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; color:var(--admin-gold); margin-bottom:6px; }
-.inbox-sub { font-size:12px; color:var(--text-muted); margin-bottom:24px; }
-.inbox-empty { text-align:center; padding:60px 20px; color:var(--text-dim); font-size:13px; }
-.request-card { background:#fff; border:1px solid #d9d4c8; border-radius:var(--radius); padding:18px 20px; margin-bottom:12px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; transition:border-color .2s; }
-.request-card:hover { border-color:#3d5a3d; }
-.request-card.pending { background:#FFF3E0; border-left:3px solid #E8832A; }
-.request-card.approved { background:#F0F7F0; border-left:3px solid #2d7a3a; }
-.request-card.declined { background:#F5F5F5; border-left:3px solid #6b7569; }
-.rc-info .rc-name { font-size:15px; font-weight:600; color:#2c2c2c; margin-bottom:4px; }
-.rc-info .rc-detail { font-size:12px; color:#2c2c2c; margin-bottom:2px; }
-.rc-info .rc-time { font-size:11px; color:#2c2c2c; margin-top:4px; }
-.rc-actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; min-width:120px; }
-.rc-status { font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:3px 10px; border-radius:50px; }
-.rc-status.pending { background:#E8832A; color:#fff; border:1px solid #E8832A; }
-.rc-status.approved { background:#2d7a3a; color:#fff; border:1px solid #2d7a3a; }
-.rc-status.declined { background:#6b7569; color:#fff; border:1px solid #6b7569; }
-.rc-handled { font-size:10px; color:#4a4a4a; text-align:right; margin-top:4px; }
-.pending-dot { display:inline-block; width:8px; height:8px; background:var(--admin-gold); border-radius:50%; margin-left:6px; animation:pulse 1.5s infinite; }
+
 
 /* Admin modal */
 .amodal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
@@ -481,11 +462,9 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
   /* Main content spacing and typography */
   .portal-section,
-  .inbox-wrap,
   .staff-wrap { padding: 1rem; }
   .section-header { margin-bottom: 1.2rem; }
   .section-header h2 { font-size: clamp(1.5rem, 6vw, 2rem); }
-  .inbox-title { font-size: clamp(1.4rem, 6vw, 2rem); }
   .week-label { font-size: clamp(1.1rem, 4vw, 1.3rem); }
   .modal-title,
   .amodal-title { font-size: clamp(1.35rem, 5vw, 1.7rem); }
@@ -1018,9 +997,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 
     <!-- Admin tabs -->
     <div class="admin-tabs">
-      <div class="admin-tab active" id="atab-inbox" onclick="switchAdminTab('inbox')">
-        📬 Requests<span id="pending-dot" class="pending-dot" style="display:none;"></span>
-      </div>
+
       <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
       <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')">🍽️ Restaurant</div>
       <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Team</div>
@@ -1029,20 +1006,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     </div>
   </div>
 
-  <!-- INBOX -->
-  <div id="asec-inbox" class="admin-section active">
-    <div class="inbox-wrap">
-      <div class="inbox-title">Guest Requests</div>
-      <div class="inbox-sub">Approve or decline — approved bookings sync to Cloudbeds and appear on the calendar</div>
-      <div style="display:flex;gap:8px;margin-bottom:20px;">
-        <button class="abtn" onclick="filterInbox('all')" id="filter-all" style="border-color:var(--admin-gold);color:var(--admin-gold);">All</button>
-        <button class="abtn" onclick="filterInbox('pending')" id="filter-pending">⏳ Pending</button>
-        <button class="abtn" onclick="filterInbox('approved')" id="filter-approved">✓ Approved</button>
-        <button class="abtn" onclick="filterInbox('declined')" id="filter-declined">✗ Declined</button>
-      </div>
-      <div id="inbox-list"><div class="inbox-empty"><span class="spinner"></span> Loading requests…</div></div>
-    </div>
-  </div>
+
 
   <!-- CALENDAR -->
   <div id="asec-calendar" class="admin-section">
@@ -1492,8 +1456,6 @@ const CALENDAR_STORAGE_KEY = 'essence_arenal_calendar_v1';
 const AVAILABILITY_KEY = 'essence_arenal_availability_v1';
 const AUDIT_KEY = 'essence_arenal_audit_v1';
 const STAFF_SESSION_KEY = 'essense_staff_session';
-const REQUEST_NOTIFICATION_TS_KEY = 'essense_last_request_check';
-const REQUEST_POLL_MS = 60000;
 const GUEST_LANG_KEY = 'essense_guest_lang';
 
 const HEADERS = {
@@ -1526,9 +1488,7 @@ async function dbDelete(table, id) {
 let currentUser = null; // { id, name, email, role }
 let guestSession = null; // { room, name }
 let bookingContext = null;
-let inboxFilter = 'all';
 let staffList = [];
-let allRequests = [];
 let weekOffset = 0;
 let activities = [];
 let activityAudit = [];
@@ -1538,8 +1498,6 @@ let pendingCell = null;
 let renderTimer = null;
 let pendingRenderMode = 'defer';
 let selectedType = 'yoga';
-let requestWatchTimer = null;
-let lastRequestCheckAt = null;
 let guestLang = localStorage.getItem(GUEST_LANG_KEY) || 'en';
 
 const GUEST_I18N = {
@@ -2794,99 +2752,21 @@ function buildUserFromEmail(email, isEditor) {
   return staffList.find(s => s.email === email) || { email, role: 'receptionist', name: email };
 }
 
-function playNewRequestChime() {
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
-  const ctx = new AudioCtx();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(830, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.22);
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 0.03);
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.3);
-  osc.onended = () => ctx.close().catch(() => {});
-}
-
-function notifyForPendingRequest(req) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const service = req.service_name || 'Service';
-  const room = req.room || 'Unknown';
-  new Notification(`New booking request — ${service} from Room ${room}`);
-}
-
-async function fetchNewPendingRequests(sinceIso) {
-  const filter = `status=eq.pending&created_at=gt.${encodeURIComponent(sinceIso)}&order=created_at.asc`;
-  const guestRows = await dbGet('guest_requests', filter);
-  if (Array.isArray(guestRows)) return guestRows;
-  const bookingRows = await dbGet('booking_requests', filter);
-  return Array.isArray(bookingRows) ? bookingRows : [];
-}
-
-async function pollNewPendingRequests() {
-  if (!currentUser) return;
-  const since = lastRequestCheckAt || new Date(Date.now() - REQUEST_POLL_MS).toISOString();
-  try {
-    const rows = await fetchNewPendingRequests(since);
-    if (rows.length) {
-      rows.forEach(notifyForPendingRequest);
-      playNewRequestChime();
-    }
-  } catch (e) {
-    console.warn('Request notification poll failed:', e?.message || e);
-  } finally {
-    lastRequestCheckAt = new Date().toISOString();
-  }
-}
-
-function startRequestNotifications() {
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission().catch(() => {});
-  }
-  const savedTs = localStorage.getItem(REQUEST_NOTIFICATION_TS_KEY);
-  localStorage.setItem(REQUEST_NOTIFICATION_TS_KEY, lastRequestCheckAt);
-  requestWatchTimer = setInterval(pollNewPendingRequests, REQUEST_POLL_MS);
-}
-
-function stopRequestNotifications() {
-  if (requestWatchTimer) {
-    clearInterval(requestWatchTimer);
-    requestWatchTimer = null;
-  }
-}
 
 function showAdminPanel() {
   showScreen('screen-admin');
   const adminEl = document.getElementById('screen-admin');
   if (adminEl) adminEl.scrollTop = 0;
-  document.getElementById('atab-inbox').style.display = (currentUser.role === 'administrator' || currentUser.role === 'guest_management') ? '' : 'none';
   loadData();
   loadShifts();
   loadAvailability();
   loadAudit();
   updateAuthUI();
   loadStaffList();
-  startRequestNotifications();
-  // Smart default tab: show Requests if there are pending, else Calendar
-  (async () => {
-    try {
-      const data = await dbGet('booking_requests', 'status=eq.pending&limit=1');
-      const hasPending = Array.isArray(data) && data.length > 0;
-      const inboxVisible = (currentUser.role === 'administrator' || currentUser.role === 'guest_management');
-      switchAdminTab(hasPending && inboxVisible ? 'inbox' : 'calendar');
-    } catch(e) {
-      switchAdminTab('calendar');
-    }
-  })();
+  switchAdminTab('calendar');
 }
 
 function adminLogout() {
-  stopRequestNotifications();
   localStorage.removeItem(STAFF_SESSION_KEY);
   currentUser = null;
   document.getElementById('staff-email').value = '';
@@ -2913,7 +2793,6 @@ function switchAdminTab(tab) {
   const secEl = document.getElementById(`asec-${tab}`);
   if (tabEl) tabEl.classList.add('active');
   if (secEl) secEl.classList.add('active');
-  if (tab === 'inbox') loadInbox();
   if (tab === 'calendar') { renderAdminCalendar(); }
   if (tab === 'restaurant-soft') renderRestaurantReplica();
   if (tab === 'staff') renderStaffTable();
@@ -3258,269 +3137,6 @@ async function renderRestaurantReplica() {
   renderMenuDisplay();
 }
 
-// ══════════════════════════════════════════════
-//  INBOX
-// ══════════════════════════════════════════════
-async function loadInbox() {
-  const list = document.getElementById('inbox-list');
-  if (!list) return;
-  list.innerHTML = '<div class="inbox-empty"><span class="spinner"></span> Loading…</div>';
-  try {
-    const data = await dbGet('booking_requests', 'order=created_at.desc');
-    allRequests = Array.isArray(data) ? data : [];
-    renderInbox();
-    const pendingCount = allRequests.filter(r => r.status === 'pending').length;
-    document.getElementById('pending-dot').style.display = pendingCount > 0 ? 'inline-block' : 'none';
-  } catch(e) {
-    allRequests = [];
-    list.innerHTML = '<div class="inbox-empty">Could not load requests.</div>';
-  }
-}
-
-function filterInbox(f) {
-  inboxFilter = f;
-  document.querySelectorAll('[id^=filter-]').forEach(b => { b.style.borderColor = ''; b.style.color = ''; });
-  const active = document.getElementById(`filter-${f}`);
-  if (active) { active.style.borderColor = 'var(--admin-gold)'; active.style.color = 'var(--admin-gold)'; }
-  renderInbox();
-}
-
-function renderInbox() {
-  const list = document.getElementById('inbox-list');
-  if (!list) return;
-  const filtered = inboxFilter === 'all' ? allRequests : allRequests.filter(r => r.status === inboxFilter);
-  if (!filtered.length) {
-    list.innerHTML = `<div class="inbox-empty">${inboxFilter === 'all' ? 'No requests yet' : `No ${inboxFilter} requests.`}</div>`;
-    return;
-  }
-  list.innerHTML = filtered.map(r => {
-    const canAct = (currentUser.role === 'administrator' || currentUser.role === 'receptionist') && r.status === 'pending';
-    const cbBadge = r.cloudbeds_synced ? '<span class="cb-badge">✓ Cloudbeds</span>' : '';
-    return `<div class="request-card ${r.status}" id="rc-${r.id}">
-      <div class="rc-info">
-        <div class="rc-name">${r.service_name} ${cbBadge}</div>
-        <div class="rc-detail">🛎 Room ${r.room} · ${r.guest_name}</div>
-        <div class="rc-detail">📅 ${r.requested_date || 'Date TBD'} · ${r.requested_time || ''} · ${r.duration_minutes || 60}min</div>
-        ${r.therapist_preference ? `<div class="rc-detail">💆 Therapist: ${r.therapist_preference}</div>` : ''}
-        <div class="rc-detail">💰 ${r.price ? '$'+r.price : 'No price'} · ${r.service_type}</div>
-        ${r.notes ? `<div class="rc-detail" style="font-style:italic;margin-top:4px;">"${r.notes}"</div>` : ''}
-        <div class="rc-time">Submitted ${new Date(r.created_at).toLocaleString()}</div>
-      </div>
-      <div class="rc-actions">
-        <span class="rc-status ${r.status}">${r.status}</span>
-        ${canAct ? `
-          <button class="abtn abtn-green" style="font-size:11px;" onclick="handleRequest('${r.id}','approved')">✓ Approve</button>
-          <button class="abtn abtn-red" style="font-size:11px;" onclick="handleRequest('${r.id}','declined')">✗ Decline</button>
-        ` : ''}
-        ${r.handled_at ? `<div class="rc-handled">by ${r.handled_by_name || 'staff'}<br>${new Date(r.handled_at).toLocaleDateString()}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function handleRequest(id, newStatus) {
-  const req = allRequests.find(r => r.id === id);
-  if (!req) return;
-  // Update in DB
-  await dbPatch('booking_requests', id, {
-    status: newStatus,
-    handled_by: currentUser.id,
-    handled_at: new Date().toISOString()
-  });
-  await notifyGuestWhatsApp(req, newStatus);
-  // If approved → add to calendar + sync to Cloudbeds
-  if (newStatus === 'approved') {
-    await addApprovedToCalendar(req);
-    await sendBookingConfirmation(req);
-    await syncToCloudbeds(req, id);
-  }
-  // Refresh
-  await loadInbox();
-  showAdminToast(newStatus === 'approved' ? '✓ Approved & synced to Cloudbeds' : '✗ Request declined');
-}
-
-function getRequestEmail(request) {
-  const email = (request?.guest_email || request?.therapist_preference || '').trim().toLowerCase();
-  return email.includes('@') ? email : '';
-}
-
-async function sendBookingConfirmation(request) {
-  const toEmail = getRequestEmail(request);
-  if (!toEmail || !supabaseClient) return;
-  const { error } = await supabaseClient.from('email_queue').insert({
-    to_email: toEmail,
-    guest_name: request.guest_name,
-    service_name: request.service_name,
-    booking_date: request.requested_date || null,
-    booking_time: request.requested_time || null,
-    duration_min: request.duration_minutes || 60,
-    created_at: new Date().toISOString(),
-  });
-  if (!error) {
-    showAdminToast(`📧 Confirmation queued for ${toEmail}`);
-  } else {
-    console.warn('[Email queue] insert failed:', error.message || error);
-  }
-}
-
-async function addApprovedToCalendar(req) {
-  const typeMap = {
-    'Spa & Wellness': 'massage', 'Tours': 'bird', 'Room Service': 'other',
-    'Holistic Therapy': 'therapy', 'Signature Massage': 'massage',
-    'Beauty Treatment': 'beauty', 'Sound Healing': 'soundbath', 'Cacao Ceremony': 'cacao',
-    'Couples Massage': 'massage', 'Volcano Tour': 'foresttherapy', 'Night Tour': 'night',
-    'Bird Watching': 'bird', 'Waterfall Hike': 'foresttherapy', 'Kayak on Lake Arenal': 'kayak',
-  };
-  const type = typeMap[req.service_name] || typeMap[req.service_type] || 'other';
-  const dateStr = req.requested_date || new Date().toISOString().split('T')[0];
-  const timeValue = to24HourTime(req.requested_time || '10:00 AM');
-  const hour = parseInt(timeValue.split(':')[0], 10);
-  const slot = getSlotIdForHour(hour);
-  const activity = {
-    id: Date.now() + Math.random(),
-    section: req.service_type === 'Tours' ? 'finca' : 'hotel',
-    dow: new Date(`${dateStr}T00:00:00`).getDay(),
-    slot,
-    date: dateStr,
-    type,
-    time: timeValue,
-    duration: req.duration_minutes || 60,
-    client: `${req.guest_name} · Room ${req.room}`,
-    staff: '',
-    by: '',
-    notes: req.notes || '',
-    weekly: false,
-    fromRequest: true,
-    requestId: req.id,
-    booking_request_id: req.id,
-    serviceName: req.service_name || '',
-    guestName: req.guest_name || '',
-    room: req.room || '',
-    price: req.price ?? null,
-    approvedBy: currentUser?.name || currentUser?.email || 'staff',
-    approvedByEmail: currentUser?.email || '',
-    approvedAt: new Date().toISOString(),
-  };
-  activities.push(activity);
-  saveData();
-  scheduleCalendarRender();
-}
-
-// ══════════════════════════════════════════════
-//  CLOUDBEDS INTEGRATION
-//  OAuth 2.0 Client Credentials flow
-//  Docs: https://hotels.cloudbeds.com/api/v1.2
-// ══════════════════════════════════════════════
-const CB_CLIENT_ID     = 'livel_214159_y3MIBothiKanR6WV9GcfENz0';
-const CB_CLIENT_SECRET = 'S3Xp|DkKEByгTJogbd2iU0n4RI7xPZlC';
-const CB_PROPERTY_ID   = 'YOUR_PROPERTY_ID'; // ← paste your numeric property ID here
-
-let _cbToken = null;
-let _cbTokenExpiry = 0;
-
-async function getCloudbedToken() {
-  if (_cbToken && Date.now() < _cbTokenExpiry) return _cbToken;
-  try {
-    const body = new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: CB_CLIENT_ID,
-      client_secret: CB_CLIENT_SECRET,
-    });
-    const resp = await fetch('https://hotels.cloudbeds.com/api/v1.2/access_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-    if (!resp.ok) throw new Error(`Token fetch failed: ${resp.status}`);
-    const data = await resp.json();
-    _cbToken = data.access_token;
-    _cbTokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-    return _cbToken;
-  } catch(e) {
-    console.warn('[Cloudbeds] Could not get access token:', e.message);
-    return null;
-  }
-}
-
-async function syncToCloudbeds(req, requestId) {
-  if (CB_PROPERTY_ID === 'YOUR_PROPERTY_ID') {
-    // Property ID not set yet — mark synced and skip
-    console.warn('[Cloudbeds] Property ID not configured yet.');
-    await dbPatch('booking_requests', requestId, { cloudbeds_synced: false });
-    return;
-  }
-  try {
-    const token = await getCloudbedToken();
-    if (!token) throw new Error('No token');
-
-    // 1. Search for guest reservation by room number
-    const searchResp = await fetch(
-      `https://hotels.cloudbeds.com/api/v1.2/getReservations?propertyID=${CB_PROPERTY_ID}&roomID=${encodeURIComponent(req.room)}&status=checked_in`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const searchData = await searchResp.json();
-    const reservation = searchData?.data?.[0];
-
-    const noteText = [
-      `✅ SERVICE APPROVED`,
-      `Service: ${req.service_name} (${req.service_type})`,
-      `Guest: ${req.guest_name} · Room: ${req.room}`,
-      `Date: ${req.requested_date || 'TBD'} at ${req.requested_time || 'TBD'}`,
-      `Duration: ${req.duration_minutes || 60} min`,
-      `Price: ${req.price ? '$'+req.price : 'N/A'}`,
-      req.notes ? `Notes: ${req.notes}` : '',
-      `Approved by: ${currentUser?.name || 'staff'} on ${new Date().toLocaleString()}`,
-    ].filter(Boolean).join('\n');
-
-    // 2. Post a note to the reservation (works even without reservationID as a general property note)
-    const notePayload = {
-      propertyID: CB_PROPERTY_ID,
-      note: noteText,
-      ...(reservation?.reservationID ? { reservationID: reservation.reservationID } : {}),
-    };
-    const noteResp = await fetch('https://hotels.cloudbeds.com/api/v1.2/postNote', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(notePayload),
-    });
-
-    // 3. If we have a reservation, also post a charge/transaction
-    if (reservation?.reservationID && req.price) {
-      await fetch('https://hotels.cloudbeds.com/api/v1.2/postTransaction', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          propertyID: CB_PROPERTY_ID,
-          reservationID: reservation.reservationID,
-          type: 'charge',
-          category: req.service_type,
-          description: req.service_name,
-          amount: req.price,
-          quantity: 1,
-        }),
-      });
-    }
-
-    if (noteResp.ok) {
-      await dbPatch('booking_requests', requestId, { cloudbeds_synced: true });
-      console.log('[Cloudbeds] Synced successfully');
-    } else {
-      const err = await noteResp.text();
-      console.warn('[Cloudbeds] Note post failed:', err);
-      await dbPatch('booking_requests', requestId, { cloudbeds_synced: false });
-    }
-  } catch(e) {
-    console.warn('[Cloudbeds] Sync error:', e.message);
-    await dbPatch('booking_requests', requestId, { cloudbeds_synced: false });
-    showAdminToast('⚠ Cloudbeds sync failed — booking approved, check console');
-  }
-}
 
 function showAdminToast(msg) {
   // Use a simple inline message for admin
