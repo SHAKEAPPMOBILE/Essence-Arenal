@@ -682,6 +682,12 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .booking-info-row { background:#fff; border:1px solid rgba(26,46,26,0.12); border-radius:6px; padding:8px 10px; }
 .booking-info-label { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mid); margin-bottom:3px; }
 .booking-info-value { font-size:13px; color:var(--charcoal); line-height:1.4; word-break:break-word; }
+.intake-toggle-row { display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:rgba(45,74,45,0.06); border:1px solid rgba(45,74,45,0.15); border-radius:6px; padding:8px 12px; margin-top:4px; font-size:12px; font-weight:500; color:var(--forest); letter-spacing:.04em; user-select:none; }
+.intake-toggle-row:hover { background:rgba(45,74,45,0.1); }
+.intake-toggle-arrow { font-size:10px; transition:transform .2s; }
+.intake-toggle-arrow.open { transform:rotate(180deg); }
+.intake-collapsible { display:none; margin-top:6px; }
+.intake-collapsible.open { display:grid; gap:8px; }
 @media (max-width: 768px) {
   .calendar-admin-header { padding: 12px 14px; }
   .week-nav, .calendar-legend, .calendar-wrapper { padding-left: 14px; padding-right: 14px; }
@@ -4123,14 +4129,16 @@ function closeModal() { document.getElementById('modal-overlay').classList.remov
 function buildGuestBookingDetails(act) {
   const intake = act.intake_form ? (function() { try { return JSON.parse(act.intake_form); } catch(e) { return {}; } })() : {};
   const dateStr = act.date ? new Date(act.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '—';
-  const rows = [
+  const mainRows = [
     { label: 'Service', value: act.serviceName || '—' },
     { label: 'Guest Name', value: act.guestName || '—' },
     { label: 'Room', value: act.room || '—' },
     { label: 'Date', value: dateStr },
     { label: 'Time', value: act.time || '—' },
-  ];
-  // Intake: only show fields with non-empty / non-default values
+  ].filter(function(r) { return r.value !== '—'; });
+
+  // Intake: only rows with non-empty / non-default values
+  const intakeRows = [];
   const ynFields = [
     { key: 'medications', label: 'Medications' },
     { key: 'injuries', label: 'Injuries' },
@@ -4138,14 +4146,36 @@ function buildGuestBookingDetails(act) {
     { key: 'chronic_pain', label: 'Chronic Pain' },
     { key: 'medical_allergies', label: 'Allergies' },
   ];
-  ynFields.forEach(function(f) { if (intake[f.key] === 'yes') rows.push({ label: f.label, value: 'Yes' }); });
-  if (intake.pressure && intake.pressure !== 'medium') rows.push({ label: 'Pressure Preference', value: intake.pressure.charAt(0).toUpperCase() + intake.pressure.slice(1) });
-  if (intake.oil_sensitivities && intake.oil_sensitivities !== 'none') rows.push({ label: 'Oils to Avoid', value: intake.oil_sensitivities });
-  if (intake.areas_to_avoid) rows.push({ label: 'Areas to Avoid', value: intake.areas_to_avoid });
-  if (intake.treatment_goals) rows.push({ label: 'Treatment Goals', value: intake.treatment_goals });
-  return '<div class="booking-info-grid">' + rows.map(function(r) {
-    return '<div class="booking-info-row"><div class="booking-info-label">' + r.label + '</div><div class="booking-info-value">' + r.value + '</div></div>';
-  }).join('') + '</div>';
+  ynFields.forEach(function(f) { if (intake[f.key] === 'yes') intakeRows.push({ label: f.label, value: 'Yes ⚠' }); });
+  if (intake.pressure && intake.pressure !== 'medium') intakeRows.push({ label: 'Pressure Preference', value: intake.pressure.charAt(0).toUpperCase() + intake.pressure.slice(1) });
+  if (intake.oil_sensitivities && intake.oil_sensitivities !== 'none') intakeRows.push({ label: 'Oils to Avoid', value: intake.oil_sensitivities });
+  if (intake.areas_to_avoid) intakeRows.push({ label: 'Areas to Avoid', value: intake.areas_to_avoid });
+  if (intake.treatment_goals) intakeRows.push({ label: 'Treatment Goals', value: intake.treatment_goals });
+
+  const rowHtml = function(rows) {
+    return rows.map(function(r) {
+      return '<div class="booking-info-row"><div class="booking-info-label">' + r.label + '</div><div class="booking-info-value">' + r.value + '</div></div>';
+    }).join('');
+  };
+
+  var html = '<div class="booking-info-grid">' + rowHtml(mainRows) + '</div>';
+
+  if (intakeRows.length > 0) {
+    html += '<div class="intake-toggle-row" onclick="toggleIntakeSection(this)">' +
+      '<span>🏥 Health &amp; Intake</span><span class="intake-toggle-arrow">▾</span>' +
+      '</div>' +
+      '<div class="intake-collapsible"><div class="booking-info-grid">' + rowHtml(intakeRows) + '</div></div>';
+  }
+
+  return html;
+}
+
+function toggleIntakeSection(toggleEl) {
+  const arrow = toggleEl.querySelector('.intake-toggle-arrow');
+  const collapsible = toggleEl.nextElementSibling;
+  if (!collapsible) return;
+  const isOpen = collapsible.classList.toggle('open');
+  if (arrow) arrow.classList.toggle('open', isOpen);
 }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 
