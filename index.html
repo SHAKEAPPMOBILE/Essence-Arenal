@@ -2159,6 +2159,12 @@ function confirmJoinActivity() {
       _guestViewingActivity = all[idx];
     }
   } catch(e) { console.warn('[join]', e); }
+
+  // Push notification
+  const _joinType = CALENDAR_TYPES.find(t => t.id === act.type) || { emoji: '📅', name: act.type || 'Activity' };
+  const _joinDate = act.date ? new Date(`${act.date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' }) : '';
+  _ntfyBooking(`${_joinType.emoji} ${act.serviceName || _joinType.name} — Guest Joined\nGuest: ${name}\nRoom: ${room}${_joinDate ? '\nDate: ' + _joinDate : ''}${act.time ? '\nTime: ' + act.time : ''}`);
+
   const formActions = document.getElementById('join-form-actions');
   const successEl = document.getElementById('join-success');
   if (formActions) formActions.style.display = 'none';
@@ -2685,6 +2691,10 @@ function submitBooking() {
     console.warn('[booking-save]', e);
   }
 
+  // Push notification
+  const _ntfyDateLabel = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' }) : '';
+  _ntfyBooking(`${service.icon || _emojiForType(calType)} ${service.name}\nGuest: ${name}\nRoom: ${room}${_ntfyDateLabel ? '\nDate: ' + _ntfyDateLabel : ''}\nTime: ${time}`);
+
   // Show success screen inside modal
   document.querySelectorAll('#booking-modal .bm-steps, #bm-step-1, #bm-step-2, #bm-step-3').forEach(el => el.style.display = 'none');
   const successEl = document.getElementById('bm-success');
@@ -2698,6 +2708,21 @@ function submitBooking() {
     successEl.style.display = 'block';
     launchEmojiShower(service.icon || _emojiForType(calType));
   }
+}
+
+function _ntfyBooking(body) {
+  try {
+    fetch('https://ntfy.sh/Essence-Arenal-Bookings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        'Title': 'New Booking - Essence Arenal',
+        'Priority': 'high',
+        'Tags': 'bell'
+      },
+      body
+    });
+  } catch(e) {}
 }
 
 function _emojiForType(type) {
