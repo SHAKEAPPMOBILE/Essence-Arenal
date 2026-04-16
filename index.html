@@ -1974,8 +1974,11 @@ function renderGuestCalendar() {
     const scopeKey = activity.weekly ? `weekly:${activity.dow}` : `date:${activity.date}`;
     const key = `${scopeKey}|${activity.slot}`;
     const bucket = activityMap.get(key) || [];
-    bucket.push(activity);
-    activityMap.set(key, bucket);
+    // Deduplicate: skip if same type+time already in bucket
+    if (!bucket.some(a => a.type === activity.type && a.time === activity.time)) {
+      bucket.push(activity);
+      activityMap.set(key, bucket);
+    }
   });
 
   const fragment = document.createDocumentFragment();
@@ -2042,11 +2045,21 @@ const GUEST_ACTIVITY_DESCS = {
 
 let _guestViewingActivity = null;
 
+const GUEST_TOUR_TYPES = new Set(['cacao', 'bird', 'night']);
+function _activityContainerId(act) { return GUEST_TOUR_TYPES.has(act.type) ? 'tour-cards' : 'spa-cards'; }
+function _activityBackFn(act) { return GUEST_TOUR_TYPES.has(act.type) ? () => showGuestTab('tours') : showSpaCalendar; }
+
 function showGuestActivityDetail(act) {
   _guestViewingActivity = act;
-  const c = document.getElementById('spa-cards');
+  if (GUEST_TOUR_TYPES.has(act.type)) {
+    document.querySelectorAll('.portal-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('guest-tours')?.classList.add('active');
+    document.getElementById('tab-tours')?.classList.add('active');
+  }
+  const c = document.getElementById(_activityContainerId(act));
   if (!c) return;
-  setGuestHeaderBtn('back', showSpaCalendar);
+  setGuestHeaderBtn('back', _activityBackFn(act));
   const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
   const info = GUEST_ACTIVITY_DESCS[act.type] || {};
   const emoji = info.emoji || type.emoji;
@@ -2078,7 +2091,7 @@ function showGuestActivityDetail(act) {
 function showGuestJoinForm() {
   const act = _guestViewingActivity;
   if (!act) return;
-  const c = document.getElementById('spa-cards');
+  const c = document.getElementById(_activityContainerId(act));
   if (!c) return;
   setGuestHeaderBtn('back', () => showGuestActivityDetail(act));
   const type = CALENDAR_TYPES.find(t => t.id === act.type) || CALENDAR_TYPES[CALENDAR_TYPES.length - 1];
@@ -2130,8 +2143,9 @@ function confirmJoinActivity() {
   const successEl = document.getElementById('join-success');
   if (formActions) formActions.style.display = 'none';
   if (successEl) successEl.style.display = 'block';
-  setGuestHeaderBtn('back', showSpaCalendar);
-  setTimeout(() => showSpaCalendar(), 2000);
+  const backFn = _activityBackFn(act);
+  setGuestHeaderBtn('back', backFn);
+  setTimeout(() => backFn(), 2000);
 }
 
 // Services data
