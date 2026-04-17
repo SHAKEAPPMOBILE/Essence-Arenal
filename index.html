@@ -4254,7 +4254,7 @@ function quickDelete(id) {
 
 function isGuestBookingActivity(activity) {
   if (!activity) return false;
-  return !!(activity.requestId || activity.booking_request_id || activity.fromRequest || /\broom\b/i.test(activity.client || ''));
+  return activity.source === 'guest_booking';
 }
 
 function parseRoomFromClient(clientText = '') {
@@ -4520,7 +4520,6 @@ function saveActivity() {
     act.id = Date.now();
     act.dow = pendingCell.dayIndex;
     act.date = pendingCell.dateStr;
-    act.booking_request_id = null;
     activities.push(act);
     logAudit('agregar', act);
   }
