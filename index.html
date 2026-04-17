@@ -2769,8 +2769,15 @@ async function submitBooking() {
   // Supabase — fire-and-forget POST to guest_bookings
   try {
     const intakeForDb = intakeData || {};
-    // Always use calType as service_category so conflict detection can reliably match it
-    const savedCategory = calType || category || '';
+    // Normalize service_category to lowercase singular so conflict detection always matches
+    const _normCat = (raw) => {
+      const s = (raw || '').toLowerCase();
+      if (s.includes('massage') || s.includes('masaj')) return 'massage';
+      if (s.includes('beauty') || s.includes('belleza') || s.includes('beauté') || s.includes('soins')) return 'beauty';
+      if (s.includes('therap') || s.includes('terap') || s.includes('thérap')) return 'therapy';
+      return s || 'other';
+    };
+    const savedCategory = _normCat(calType !== 'other' ? calType : category);
     console.log('[booking-save] service_category being saved:', savedCategory, '| calType:', calType, '| category:', category);
     fetch(`${SUPA_URL}/rest/v1/guest_bookings`, {
       method: 'POST',
@@ -4545,6 +4552,20 @@ function deleteActivity() {
   saveData();
   closeModal();
   scheduleCalendarRender();
+
+  // Delete from Supabase if this was a guest booking
+  if (removed && removed.source === 'guest_booking' && removed.guestName && removed.date && removed.time && removed.serviceName) {
+    try {
+      const delUrl = `${SUPA_URL}/rest/v1/guest_bookings` +
+        `?guest_name=eq.${encodeURIComponent(removed.guestName)}` +
+        `&date=eq.${encodeURIComponent(removed.date)}` +
+        `&time=eq.${encodeURIComponent(removed.time)}` +
+        `&service_name=eq.${encodeURIComponent(removed.serviceName)}`;
+      fetch(delUrl, { method: 'DELETE', headers: HEADERS })
+        .then(r => console.log('[supabase] booking deleted, status:', r.status))
+        .catch(e => console.warn('[supabase] DELETE error:', e));
+    } catch(e) { console.warn('[supabase] DELETE error:', e); }
+  }
 }
 
 function renderClientPills(actId) {
