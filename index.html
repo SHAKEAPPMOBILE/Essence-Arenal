@@ -2660,8 +2660,10 @@ async function submitBooking() {
 
   // Determine calendar type from service name / category
   const nameLower = (service.name || '').toLowerCase();
+  const catLower  = (category || '').toLowerCase();
   let calType = 'other';
-  if (nameLower.includes('sound bath') || nameLower.includes('sonido')) calType = 'soundbath';
+  // Specific service-name checks take highest priority (e.g. a sound bath in the Therapies category)
+  if      (nameLower.includes('sound bath') || nameLower.includes('sonido')) calType = 'soundbath';
   else if (nameLower.includes('temazcal') || nameLower.includes('temascal')) calType = 'temazcal';
   else if (nameLower.includes('night tour') || nameLower.includes('nocturno')) calType = 'night';
   else if (nameLower.includes('bird')) calType = 'bird';
@@ -2671,9 +2673,16 @@ async function submitBooking() {
   else if (nameLower.includes('detox')) calType = 'detox';
   else if (nameLower.includes('kayak')) calType = 'kayak';
   else if (nameLower.includes('forest')) calType = 'foresttherapy';
+  // Category label — checked before generic name fallbacks so every service in a category maps correctly
+  // Handles 'Massages', 'Masajes', 'Masajes' (ES), 'Massages' (FR) etc.
+  else if (catLower.includes('massage') || catLower.includes('masaj')) calType = 'massage';
+  else if (catLower.includes('beauty') || catLower.includes('belleza') || catLower.includes('beauté') || catLower.includes('soins beauté')) calType = 'beauty';
+  else if (catLower.includes('therap') || catLower.includes('terap') || catLower.includes('thérap')) calType = 'therapy';
+  // Name-based fallbacks for services reached outside the spa category flow
+  else if (nameLower.includes('massage') || nameLower.includes('masaje')) calType = 'massage';
+  else if (nameLower.includes('facial') || nameLower.includes('beauty')) calType = 'beauty';
   else if (nameLower.includes('therapy') || nameLower.includes('terapia') || nameLower.includes('nlp')) calType = 'therapy';
-  else if (category === 'massage' || category === 'spa' || nameLower.includes('massage') || nameLower.includes('masaje')) calType = 'massage';
-  else if (category === 'beauty' || nameLower.includes('facial') || nameLower.includes('beauty')) calType = 'beauty';
+  console.log('[calType] service:', service.name, '| category:', category, '| calType:', calType);
 
   const fincaTypes = ['night', 'bird', 'cacao', 'kayak', 'cooking', 'foresttherapy'];
   const dateStr = date || new Date().toISOString().split('T')[0];
