@@ -397,6 +397,32 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .ts-window-del { background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:4px 6px; border-radius:4px; min-height:unset; transition:color .15s; }
 .ts-window-del:hover { color:#e8a0a0; }
 
+/* Timesheet */
+.tsh-wrap { padding:24px 28px; max-width:940px; }
+.tsh-section-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; color:var(--forest); margin-bottom:4px; }
+.tsh-section-sub { font-size:12px; color:var(--mid); margin-bottom:0; }
+.tsh-form-panel { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:20px; margin-bottom:20px; }
+.tsh-form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:0; }
+.tsh-form-group { margin-bottom:12px; }
+.tsh-form-label { font-size:10px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; display:block; font-weight:500; font-family:'DM Sans',sans-serif; }
+.tsh-form-input { width:100%; background:#1a261a; border:1px solid #2b3d2b; border-radius:var(--radius-sm); padding:9px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; transition:border-color .2s; }
+.tsh-form-input:focus { border-color:var(--admin-gold); }
+.tsh-form-input option { background:#1a261a; }
+.tsh-summary { background:rgba(201,169,110,0.08); border:1px solid rgba(201,169,110,0.25); border-radius:var(--radius); padding:14px 20px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
+.tsh-summary-label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); font-family:'DM Sans',sans-serif; font-weight:500; margin-bottom:2px; }
+.tsh-summary-value { font-size:28px; font-family:'Cormorant Garamond',serif; color:var(--admin-gold); font-weight:300; line-height:1; }
+.tsh-summary-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.tsh-table-wrap { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); overflow:hidden; margin-bottom:16px; }
+.tsh-week-header { background:#0f180f; padding:10px 16px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--admin-gold); font-family:'DM Sans',sans-serif; font-weight:500; border-bottom:1px solid #2b3d2b; display:flex; align-items:center; justify-content:space-between; }
+.tsh-table { width:100%; border-collapse:collapse; }
+.tsh-table th { text-align:left; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); padding:10px 16px; border-bottom:1px solid #2b3d2b; font-weight:500; font-family:'DM Sans',sans-serif; }
+.tsh-table td { padding:12px 16px; border-bottom:1px solid rgba(43,61,43,0.5); font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; }
+.tsh-table tbody tr:last-child td { border-bottom:none; }
+.tsh-table tbody tr:hover td { background:rgba(26,38,26,0.7); }
+.tsh-del-btn { background:none; border:none; color:var(--text-dim); font-size:13px; cursor:pointer; padding:2px 6px; border-radius:4px; transition:color .15s; min-height:unset; }
+.tsh-del-btn:hover { color:#e8a0a0; }
+.tsh-empty { text-align:center; padding:36px; color:var(--text-muted); font-size:13px; background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); }
+
 /* POS tickets */
 .pos-container { max-height:500px; overflow-y:auto; }
 .pos-ticket { background:#141e14; border:1px solid #2b3d2b; border-radius:var(--radius); padding:14px; margin-bottom:10px; font-family:'DM Mono',monospace; font-size:11px; }
@@ -1031,6 +1057,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Team</div>
       <div class="admin-tab" id="atab-rooms" onclick="switchAdminTab('rooms')">🏨 Rooms</div>
       <div class="admin-tab" id="atab-activity" onclick="switchAdminTab('activity')">📋 Activity</div>
+      <div class="admin-tab" id="atab-timesheet" onclick="switchAdminTab('timesheet')">⏱ Timesheet</div>
     </div>
   </div>
 
@@ -1252,6 +1279,74 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
           style="flex:1;padding:9px 14px;border:1px solid #d8d3ca;border-radius:8px;font-size:14px;font-family:inherit;background:#faf9f6;color:var(--forest);outline:none;">
       </div>
       <div id="guests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- TIMESHEET -->
+  <div id="asec-timesheet" class="admin-section">
+    <div class="tsh-wrap">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div class="tsh-section-title">Timesheet</div>
+          <div class="tsh-section-sub">Track clock-in and clock-out for each team member</div>
+        </div>
+        <button class="abtn abtn-gold" onclick="exportTimesheetCSV()">⬇ Export CSV</button>
+      </div>
+
+      <!-- Staff + Month selectors -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="tsh-form-group">
+          <label class="tsh-form-label">Staff Member</label>
+          <select class="tsh-form-input" id="tsh-staff-select" onchange="renderTimesheet()">
+          </select>
+        </div>
+        <div class="tsh-form-group">
+          <label class="tsh-form-label">Month (for export)</label>
+          <input type="month" class="tsh-form-input" id="tsh-month-filter">
+        </div>
+      </div>
+
+      <!-- Entry form -->
+      <div class="tsh-form-panel">
+        <div class="ts-panel-title">New Entry</div>
+        <div class="tsh-form-row">
+          <div class="tsh-form-group">
+            <label class="tsh-form-label">Date</label>
+            <input type="date" class="tsh-form-input" id="tsh-date">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="tsh-form-group">
+              <label class="tsh-form-label">Clock In</label>
+              <input type="time" class="tsh-form-input" id="tsh-clock-in">
+            </div>
+            <div class="tsh-form-group">
+              <label class="tsh-form-label">Clock Out</label>
+              <input type="time" class="tsh-form-input" id="tsh-clock-out">
+            </div>
+          </div>
+        </div>
+        <div class="tsh-form-group">
+          <label class="tsh-form-label">Notes (optional)</label>
+          <input type="text" class="tsh-form-input" id="tsh-notes" placeholder="e.g. Covered morning shift">
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="abtn abtn-gold" onclick="saveTimesheetEntry()">Save Entry</button>
+        </div>
+      </div>
+
+      <!-- Weekly summary -->
+      <div class="tsh-summary">
+        <div>
+          <div class="tsh-summary-label">This Week's Total</div>
+          <div class="tsh-summary-sub" id="tsh-week-range"></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="tsh-summary-value" id="tsh-week-hours">0h 0m</div>
+        </div>
+      </div>
+
+      <!-- Entries grouped by week -->
+      <div id="tsh-entries-container"></div>
     </div>
   </div>
 </div>
@@ -3011,6 +3106,7 @@ function showAdminPanel() {
   loadAudit();
   updateAuthUI();
   loadStaffList();
+  initTimesheetTab();
   switchAdminTab('calendar');
 }
 
@@ -3047,7 +3143,262 @@ function switchAdminTab(tab) {
   if (tab === 'shifts') renderTeamSchedule();
   if (tab === 'activity') renderActivityHistory();
   if (tab === 'guests') renderGuestsTab();
+  if (tab === 'timesheet') renderTimesheet();
   // 'rooms' needs no render call — static placeholder
+}
+
+
+// ══════════════════════════════════════════════
+//  TIMESHEET
+// ══════════════════════════════════════════════
+const TSH_KEY = 'essence_timesheets';
+
+function tshAllMembers() {
+  return Object.values(TEAM).flat();
+}
+
+function tshLoad() {
+  try { return JSON.parse(localStorage.getItem(TSH_KEY) || '{}'); } catch(e) { return {}; }
+}
+
+function tshSave(data) {
+  localStorage.setItem(TSH_KEY, JSON.stringify(data));
+}
+
+function tshCalcMins(clockIn, clockOut) {
+  if (!clockIn || !clockOut) return 0;
+  const [ih, im] = clockIn.split(':').map(Number);
+  const [oh, om] = clockOut.split(':').map(Number);
+  const diff = (oh * 60 + om) - (ih * 60 + im);
+  return diff < 0 ? 0 : diff;
+}
+
+function tshFormatMins(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m`;
+}
+
+function tshCurrentWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return { monday, sunday };
+}
+
+function tshDateInRange(dateStr, monday, sunday) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d >= monday && d <= sunday;
+}
+
+function tshGetWeekKey(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  const year = mon.getFullYear();
+  const startOfYear = new Date(year, 0, 1);
+  const weekNum = Math.ceil(((mon - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+  return `${year}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+function tshWeekLabel(weekKey) {
+  const [year, wStr] = weekKey.split('-W');
+  const weekNum = parseInt(wStr);
+  const jan1 = new Date(parseInt(year), 0, 1);
+  const dayOfWeek = jan1.getDay() || 7; // 1=Mon..7=Sun
+  const monday = new Date(jan1);
+  monday.setDate(jan1.getDate() + (weekNum - 1) * 7 - (dayOfWeek - 1));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = d => `${d.getDate()} ${TS_MONTHS[d.getMonth()]}`;
+  return `${fmt(monday)} – ${fmt(sunday)} ${monday.getFullYear()}`;
+}
+
+function initTimesheetTab() {
+  const sel = document.getElementById('tsh-staff-select');
+  if (!sel) return;
+  const members = tshAllMembers();
+  sel.innerHTML = members.map(m => `<option value="${m}">${m}</option>`).join('');
+  const dateInput = document.getElementById('tsh-date');
+  if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
+  const monthFilter = document.getElementById('tsh-month-filter');
+  if (monthFilter) {
+    const now = new Date();
+    monthFilter.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+}
+
+function renderTimesheet() {
+  const sel = document.getElementById('tsh-staff-select');
+  if (!sel || !sel.value) return;
+  const employee = sel.value;
+
+  const data = tshLoad();
+  const empData = data[employee] || {};
+
+  // Weekly summary
+  const { monday, sunday } = tshCurrentWeekRange();
+  let weekMins = 0;
+  Object.entries(empData).forEach(([dateStr, entries]) => {
+    if (tshDateInRange(dateStr, monday, sunday)) {
+      entries.forEach(e => { weekMins += tshCalcMins(e.clockIn, e.clockOut); });
+    }
+  });
+  const weekHoursEl = document.getElementById('tsh-week-hours');
+  if (weekHoursEl) weekHoursEl.textContent = tshFormatMins(weekMins);
+  const weekRangeEl = document.getElementById('tsh-week-range');
+  if (weekRangeEl) {
+    const fmt = d => `${d.getDate()} ${TS_MONTHS[d.getMonth()]}`;
+    weekRangeEl.textContent = `${fmt(monday)} – ${fmt(sunday)}`;
+  }
+
+  // Flatten all entries
+  const allEntries = [];
+  Object.entries(empData).forEach(([dateStr, entries]) => {
+    entries.forEach(e => allEntries.push({ dateStr, ...e }));
+  });
+
+  const container = document.getElementById('tsh-entries-container');
+  if (!container) return;
+
+  if (allEntries.length === 0) {
+    container.innerHTML = `<div class="tsh-empty">No timesheet entries yet for ${employee}</div>`;
+    return;
+  }
+
+  // Sort newest first
+  allEntries.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || (b.clockIn || '').localeCompare(a.clockIn || ''));
+
+  // Group by week key
+  const byWeek = {};
+  allEntries.forEach(e => {
+    const wk = tshGetWeekKey(e.dateStr);
+    if (!byWeek[wk]) byWeek[wk] = [];
+    byWeek[wk].push(e);
+  });
+
+  const weekKeys = Object.keys(byWeek).sort((a, b) => b.localeCompare(a));
+
+  let html = '';
+  weekKeys.forEach(wk => {
+    const entries = byWeek[wk];
+    const weekTotal = entries.reduce((sum, e) => sum + tshCalcMins(e.clockIn, e.clockOut), 0);
+    html += `<div class="tsh-table-wrap">
+      <div class="tsh-week-header">
+        <span>${tshWeekLabel(wk)}</span>
+        <span style="color:var(--text-muted);font-weight:400;font-size:11px;">${tshFormatMins(weekTotal)} total</span>
+      </div>
+      <table class="tsh-table">
+        <thead><tr>
+          <th>Date</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Notes</th><th></th>
+        </tr></thead>
+        <tbody>`;
+    entries.forEach(e => {
+      const mins = tshCalcMins(e.clockIn, e.clockOut);
+      const d = new Date(e.dateStr + 'T00:00:00');
+      const dayLabel = `${TS_DAYS[d.getDay()]} ${d.getDate()} ${TS_MONTHS[d.getMonth()]}`;
+      html += `<tr>
+        <td>${dayLabel}</td>
+        <td>${e.clockIn || '—'}</td>
+        <td>${e.clockOut || '—'}</td>
+        <td style="color:var(--admin-gold);font-weight:500;">${mins > 0 ? tshFormatMins(mins) : '—'}</td>
+        <td style="color:var(--text-muted);">${e.notes ? e.notes.replace(/</g,'&lt;') : ''}</td>
+        <td><button class="tsh-del-btn" onclick="deleteTimesheetEntry(${JSON.stringify(employee)},${JSON.stringify(e.dateStr)},${JSON.stringify(e.id)})">✕</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function saveTimesheetEntry() {
+  const employee = document.getElementById('tsh-staff-select')?.value;
+  const dateStr = document.getElementById('tsh-date')?.value;
+  const clockIn = document.getElementById('tsh-clock-in')?.value;
+  const clockOut = document.getElementById('tsh-clock-out')?.value;
+  const notes = document.getElementById('tsh-notes')?.value?.trim() || '';
+
+  if (!employee || !dateStr || !clockIn || !clockOut) {
+    alert('Please fill in staff member, date, clock in, and clock out.');
+    return;
+  }
+
+  const data = tshLoad();
+  if (!data[employee]) data[employee] = {};
+  if (!data[employee][dateStr]) data[employee][dateStr] = [];
+
+  data[employee][dateStr].push({
+    clockIn,
+    clockOut,
+    notes,
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+  });
+
+  tshSave(data);
+
+  const ciEl = document.getElementById('tsh-clock-in');
+  const coEl = document.getElementById('tsh-clock-out');
+  const notesEl = document.getElementById('tsh-notes');
+  if (ciEl) ciEl.value = '';
+  if (coEl) coEl.value = '';
+  if (notesEl) notesEl.value = '';
+
+  renderTimesheet();
+}
+
+function deleteTimesheetEntry(employee, dateStr, id) {
+  const data = tshLoad();
+  if (!data[employee]?.[dateStr]) return;
+  data[employee][dateStr] = data[employee][dateStr].filter(e => e.id !== id);
+  if (data[employee][dateStr].length === 0) delete data[employee][dateStr];
+  tshSave(data);
+  renderTimesheet();
+}
+
+function exportTimesheetCSV() {
+  const employee = document.getElementById('tsh-staff-select')?.value;
+  const monthVal = document.getElementById('tsh-month-filter')?.value || '';
+  if (!employee) return;
+
+  const data = tshLoad();
+  const empData = data[employee] || {};
+
+  const entries = [];
+  Object.entries(empData).forEach(([dateStr, dayEntries]) => {
+    if (!monthVal || dateStr.startsWith(monthVal)) {
+      dayEntries.forEach(e => entries.push({ dateStr, ...e }));
+    }
+  });
+
+  entries.sort((a, b) => a.dateStr.localeCompare(b.dateStr) || (a.clockIn || '').localeCompare(b.clockIn || ''));
+
+  const csvLines = ['Date,Clock In,Clock Out,Hours,Notes'];
+  entries.forEach(e => {
+    const mins = tshCalcMins(e.clockIn, e.clockOut);
+    const hours = (mins / 60).toFixed(2);
+    const d = new Date(e.dateStr + 'T00:00:00');
+    const dayLabel = `${TS_DAYS[d.getDay()]} ${d.getDate()} ${TS_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const notes = (e.notes || '').replace(/"/g, '""');
+    csvLines.push(`"${dayLabel}","${e.clockIn || ''}","${e.clockOut || ''}","${hours}","${notes}"`);
+  });
+
+  const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const monthLabel = monthVal || 'all';
+  a.download = `timesheet_${employee.replace(/\s+/g, '_')}_${monthLabel}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 
