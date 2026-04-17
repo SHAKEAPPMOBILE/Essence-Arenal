@@ -1227,7 +1227,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   <!-- ACTIVITY HISTORY -->
   <div id="asec-activity" class="admin-section">
     <div class="inbox-wrap">
-      <div class="inbox-title" style="margin-bottom:20px;">Activity History</div>
       <div id="activity-history-list"></div>
     </div>
   </div>
@@ -3060,7 +3059,7 @@ function renderActivityHistory() {
         room: act.room || '—',
         date: act.date || '',
         time: act.time || '',
-        sortKey: act.id || 0,
+        sortKey: act.date ? new Date(act.date + 'T00:00:00').getTime() : (act.id || 0),
         kind: 'booking',
       });
     }
@@ -3074,7 +3073,7 @@ function renderActivityHistory() {
           room: a.room || '—',
           date: act.date || '',
           time: act.time || '',
-          sortKey: new Date(a.joinedAt || 0).getTime(),
+          sortKey: act.date ? new Date(act.date + 'T00:00:00').getTime() : new Date(a.joinedAt || 0).getTime(),
           kind: 'join',
         });
       });
@@ -3088,22 +3087,120 @@ function renderActivityHistory() {
 
   rows.sort((a, b) => b.sortKey - a.sortKey);
 
-  list.innerHTML = rows.map(r => {
-    const dateLabel = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) : '';
+  // --- Grouping logic ---
+  // Get Monday of the current week
+  const _today = new Date(); _today.setHours(0,0,0,0);
+  const _todayDay = _today.getDay();
+  const _thisMonday = new Date(_today);
+  _thisMonday.setDate(_today.getDate() - (_todayDay === 0 ? 6 : _todayDay - 1));
+
+  function _weekMonday(d) {
+    const day = d.getDay();
+    const mon = new Date(d);
+    mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+    mon.setHours(0,0,0,0);
+    return mon;
+  }
+  function _weekKey(monDate) {
+    return monDate.toISOString().split('T')[0];
+  }
+  function _weekLabel(monDate) {
+    const sun = new Date(monDate); sun.setDate(monDate.getDate() + 6);
+    const fmt = d => d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+    return `Week of ${fmt(monDate)} – ${fmt(sun)}`;
+  }
+  function _monthKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  function _monthLabel(d) {
+    return d.toLocaleDateString(undefined, { month:'long', year:'numeric' });
+  }
+
+  const fourWeeksAgo = new Date(_thisMonday);
+  fourWeeksAgo.setDate(_thisMonday.getDate() - 28);
+
+  // Assign each row to a group bucket
+  const groupMap = new Map(); // key → { label, isCurrentWeek, rows[] }
+
+  rows.forEach(r => {
+    if (!r.date) return;
+    const d = new Date(r.date + 'T00:00:00');
+    const mon = _weekMonday(d);
+
+    let key, label, isCurrent;
+    if (mon.getTime() >= _thisMonday.getTime()) {
+      key = 'this-week'; label = 'This Week'; isCurrent = true;
+    } else if (d >= fourWeeksAgo) {
+      key = 'week-' + _weekKey(mon); label = _weekLabel(mon); isCurrent = false;
+    } else {
+      key = 'month-' + _monthKey(d); label = _monthLabel(d); isCurrent = false;
+    }
+
+    if (!groupMap.has(key)) groupMap.set(key, { label, isCurrent, rows: [] });
+    groupMap.get(key).rows.push(r);
+  });
+
+  // Rows without a date go into "This Week" bucket
+  const undated = rows.filter(r => !r.date);
+  if (undated.length) {
+    if (!groupMap.has('this-week')) groupMap.set('this-week', { label: 'This Week', isCurrent: true, rows: [] });
+    groupMap.get('this-week').rows.push(...undated);
+  }
+
+  // Card HTML helper
+  function _cardHtml(r) {
+    const dateLabel = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) : '';
     const timeLabel = r.time || '';
-    const kindBadge = r.kind === 'join'
-      ? `<span class="status-badge status-approved" style="margin-left:6px;">joined</span>`
-      : '';
-    return `
-      <div class="booking-item">
-        <div class="booking-info" style="flex:1;">
-          <div class="bi-name">${r.title}${kindBadge}</div>
-          <div class="bi-detail">${r.guest} · Room ${r.room}</div>
-          ${dateLabel || timeLabel ? `<div class="bi-detail" style="margin-top:3px;">${[dateLabel, timeLabel].filter(Boolean).join(' · ')}</div>` : ''}
+    const kindBadge = r.kind === 'join' ? `<span class="status-badge status-approved" style="margin-left:6px;">joined</span>` : '';
+    return `<div class="booking-item">
+      <div class="booking-info" style="flex:1;">
+        <div class="bi-name">${r.title}${kindBadge}</div>
+        <div class="bi-detail">${r.guest} · Room ${r.room}</div>
+        ${dateLabel || timeLabel ? `<div class="bi-detail" style="margin-top:3px;">${[dateLabel,timeLabel].filter(Boolean).join(' · ')}</div>` : ''}
+      </div>
+      <div><span class="status-badge status-approved">confirmed</span></div>
+    </div>`;
+  }
+
+  // Render groups in order: this-week first, then weeks newest→oldest, then months newest→oldest
+  const groupOrder = [...groupMap.keys()].sort((a, b) => {
+    const rank = k => k === 'this-week' ? 0 : k.startsWith('week-') ? 1 : 2;
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    return b.localeCompare(a); // newest first within same type
+  });
+
+  let html = '';
+  groupOrder.forEach((key, gi) => {
+    const g = groupMap.get(key);
+    const open = g.isCurrent;
+    const gid = `act-group-${gi}`;
+    html += `
+      <div style="margin-bottom:4px;">
+        <div onclick="(function(h,b){var o=b.style.display==='none';b.style.display=o?'':'none';h.querySelector('.act-grp-arrow').textContent=o?'▾':'▸';})(this,document.getElementById('${gid}'))"
+          style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:rgba(26,46,26,0.06);cursor:pointer;user-select:none;margin-bottom:${open?'8':'0'}px;">
+          <span style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--forest);opacity:.7;">${g.label}</span>
+          <span class="act-grp-arrow" style="font-size:.75rem;color:var(--forest);opacity:.5;">${open ? '▾' : '▸'}</span>
         </div>
-        <div><span class="status-badge status-approved">confirmed</span></div>
+        <div id="${gid}" style="display:${open?'':'none'};display:flex;flex-direction:column;gap:8px;padding-bottom:4px;">
+          ${g.rows.map(_cardHtml).join('')}
+        </div>
       </div>`;
-  }).join('');
+  });
+
+  list.innerHTML = html;
+
+  // Fix: inline display:flex conflicts with the toggle hide — set after render
+  groupOrder.forEach((key, gi) => {
+    const g = groupMap.get(key);
+    const el = document.getElementById(`act-group-${gi}`);
+    if (el) {
+      el.style.display = g.isCurrent ? 'flex' : 'none';
+      el.style.flexDirection = 'column';
+      el.style.gap = '8px';
+      el.style.paddingBottom = '4px';
+    }
+  });
 }
 
 async function renderGuestsTab() {
