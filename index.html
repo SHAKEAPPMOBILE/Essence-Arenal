@@ -546,7 +546,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:18px; line-height:1; cursor:pointer; transition:background .2s;
 }
 .btn-add-activity:hover { background:#d97269; }
-.calendar-wrapper { flex:1; padding:24px 28px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.calendar-wrapper { flex:1; padding:24px 0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .calendar-grid {
   display:grid; grid-template-columns:80px repeat(7,minmax(140px,1fr)); min-width:1060px; border:1px solid rgba(26,46,26,0.12);
   border-radius:8px; overflow:visible; background:var(--warm-white); box-shadow:0 2px 16px rgba(26,46,26,0.03);
@@ -691,7 +691,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .intake-collapsible.open { display:grid; gap:8px; }
 @media (max-width: 768px) {
   .calendar-admin-header { padding: 12px 14px; }
-  .week-nav, .calendar-legend, .calendar-wrapper { padding-left: 14px; padding-right: 14px; }
+  .week-nav, .calendar-legend { padding-left: 14px; padding-right: 14px; }
   .calendar-header-right { gap: 8px; }
   /* Mobile admin header: Exit | Title | + only, single compact row */
   .app-header { padding: 10px 14px; }
