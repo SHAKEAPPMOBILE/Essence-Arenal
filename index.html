@@ -231,6 +231,8 @@ body { overflow: hidden; font-family: 'Jost', sans-serif; background: #FAF6EE; c
 .intake-yn-btns { display:flex; gap:4px; flex-shrink:0; }
 .yn-btn { background:none; border:1px solid rgba(245,240,228,0.35); border-radius:20px; padding:.26rem .78rem; font-family:'Jost',sans-serif; font-size:.62rem; letter-spacing:.08em; color:rgba(245,240,228,0.8); cursor:pointer; transition:all .2s; }
 .yn-btn.active { background:rgba(122,170,134,0.25); border-color:var(--sage); color:var(--cream); }
+.bm-dur-btn { padding:7px 14px; border-radius:20px; border:1.5px solid var(--sage); background:transparent; color:var(--sage); font-size:.83rem; cursor:pointer; transition:all .18s; font-family:inherit; }
+.bm-dur-btn.active { background:var(--sage); color:#fff; }
 .pressure-btns { display:flex; gap:6px; margin-top:.4rem; }
 .pressure-btn { flex:1; background:none; border:1px solid rgba(245,240,228,0.35); border-radius:20px; padding:.48rem .5rem; font-family:'Jost',sans-serif; font-size:.65rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(245,240,228,0.8); cursor:pointer; transition:all .2s; }
 .pressure-btn.active { background:rgba(122,170,134,0.25); border-color:var(--sage); color:var(--cream); }
@@ -859,6 +861,11 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="modal-title" id="bm-title">Book Session</div>
       <div class="modal-sub" id="bm-sub">Spa &amp; Wellness</div>
       <div class="field-group"><label id="bm-label-date">Preferred Date</label><input type="date" id="bm-date" style="width:170px;"></div>
+      <!-- Duration picker — shown only for services with multiple duration options -->
+      <div class="field-group" id="bm-duration-wrap" style="display:none;">
+        <label>Duration</label>
+        <div id="bm-duration-btns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
+      </div>
       <div class="field-group">
         <label id="bm-label-time">Select Time</label>
         <div class="drum-picker-wrap" id="bm-drum-wrap">
@@ -2206,18 +2213,18 @@ const THERAPIES_SERVICES = [
   { id:'forest-therapy', name:'Forest Therapy', sub:'2 hours', desc:'Guided immersion in the rainforest for grounding and renewal.', price:'$48/pax', icon:'🌿', duration:120 },
 ];
 const MASSAGES_SERVICES = [
-  { id:'swedish-massage', name:'Swedish Massage', sub:'60 or 90 min', desc:'Classic full-body massage using long flowing strokes for total relaxation.', price:'$48 / $68', icon:'🤲', duration:60 },
-  { id:'deep-tissue', name:'Deep Tissue', sub:'60 or 90 min', desc:'Targeted pressure on deep muscle layers to release chronic tension.', price:'$55 / $78', icon:'💪', duration:60 },
-  { id:'lymphatic-drainage', name:'Lymphatic Drainage', sub:'60 or 90 min', desc:'Gentle rhythmic technique to stimulate lymph flow and reduce inflammation.', price:'$55 / $78', icon:'🌊', duration:60 },
-  { id:'hot-stones', name:'Hot Stones', sub:'90 min', desc:'Heated basalt stones melt tension from muscles for profound relaxation.', price:'$78', icon:'🪨', duration:90 },
-  { id:'reflexology', name:'Reflexology', sub:'60 min', desc:'Targeted pressure on foot reflex zones to activate whole-body healing.', price:'$55', icon:'👣', duration:60 },
-  { id:'tired-legs', name:'Tired Legs Massage', sub:'60 min', desc:'Specialized technique to relieve heaviness and fatigue in the legs.', price:'$55', icon:'🦵', duration:60 },
+  { id:'swedish-massage', name:'Swedish Massage', sub:'60 or 90 min', desc:'Classic full-body massage using long flowing strokes for total relaxation.', price:'$48 / $68', icon:'🤲', duration:60, durations:[{min:60,price:'$48'},{min:90,price:'$68'}] },
+  { id:'deep-tissue', name:'Deep Tissue', sub:'60 or 90 min', desc:'Targeted pressure on deep muscle layers to release chronic tension.', price:'$55 / $78', icon:'💪', duration:60, durations:[{min:60,price:'$55'},{min:90,price:'$78'}] },
+  { id:'lymphatic-drainage', name:'Lymphatic Drainage', sub:'60 or 90 min', desc:'Gentle rhythmic technique to stimulate lymph flow and reduce inflammation.', price:'$55 / $78', icon:'🌊', duration:60, durations:[{min:60,price:'$55'},{min:90,price:'$78'}] },
+  { id:'hot-stones', name:'Hot Stones', sub:'90 min', desc:'Heated basalt stones melt tension from muscles for profound relaxation.', price:'$70', icon:'🪨', duration:90 },
+  { id:'reflexology', name:'Reflexology', sub:'60 min', desc:'Targeted pressure on foot reflex zones to activate whole-body healing.', price:'$45', icon:'👣', duration:60 },
+  { id:'tired-legs', name:'Tired Legs Massage', sub:'60 min', desc:'Specialized technique to relieve heaviness and fatigue in the legs.', price:'$45', icon:'🦵', duration:60 },
   { id:'thai-massage', name:'Thai Massage', sub:'90 min', desc:'Traditional assisted stretching and acupressure on a floor mat.', price:'$85', icon:'🙏', duration:90 },
-  { id:'holistic-massage', name:'Holistic Massage', sub:'90 min', desc:'Intuitive full-body session combining multiple techniques for harmony.', price:'$70', icon:'🌺', duration:90 },
-  { id:'herbal-pindas', name:'Hot Herbal Pindas Massage', sub:'60 or 90 min', desc:'Warm herbal compresses applied to muscles for deep therapeutic relief.', price:'$70 / $100', icon:'🌿', duration:60 },
-  { id:'cupping-therapy', name:'Cupping Therapy', sub:'60 min', desc:'Ancient suction cups lift and release fascia to improve circulation.', price:'$60', icon:'🫧', duration:60 },
-  { id:'lomi-lomi', name:'Lomi Lomi', sub:'90 min', desc:'Hawaiian forearm massage with long continuous strokes for deep restoration.', price:'$83', icon:'🌸', duration:90 },
-  { id:'couples-spa', name:'Couple Experience · Private Spa', sub:'2 hours · $118/person', desc:'Full Body Scrub, Facial Detox, Rejuvenation & Private Spa Circuit for two.', price:'$118/person', icon:'💑', duration:120 },
+  { id:'holistic-massage', name:'Holistic Massage', sub:'90 min', desc:'Intuitive full-body session combining multiple techniques for harmony.', price:'$65', icon:'🌺', duration:90 },
+  { id:'herbal-pindas', name:'Hot Herbal Pindas Massage', sub:'60 or 90 min', desc:'Warm herbal compresses applied to muscles for deep therapeutic relief.', price:'$70 / $100', icon:'🌿', duration:60, durations:[{min:60,price:'$70'},{min:90,price:'$100'}] },
+  { id:'cupping-therapy', name:'Cupping Therapy', sub:'60 min', desc:'Ancient suction cups lift and release fascia to improve circulation.', price:'$55', icon:'🫧', duration:60 },
+  { id:'lomi-lomi', name:'Lomi Lomi', sub:'90 min', desc:'Hawaiian forearm massage with long continuous strokes for deep restoration.', price:'$85', icon:'🌸', duration:90 },
+  { id:'couples-spa', name:'Couple Experience · Private Spa', sub:'2 hours', desc:'Full Body Scrub, Facial Detox, Rejuvenation & Private Spa Circuit for two.', price:'$150', icon:'💑', duration:120 },
 ];
 const BEAUTY_SERVICES = [
   { id:'facial-basic', name:'Facial Basic', sub:'60 min', desc:'Deep cleansing, exfoliation and hydration tailored to your skin type.', price:'$58', icon:'✨', duration:60 },
@@ -2481,6 +2488,21 @@ function openBookingModal(service, category) {
   document.getElementById('bm-notes').value = '';
   bmHasSpaIntake = MASSAGES_SERVICES.some(s => s.id === service.id);
   Object.assign(bmIntake, { medications:'no', injuries:'no', pregnant:'no', chronicPain:'no', allergies:'no', pressure:'medium', oilAllergies:[], areasAvoid:'', goals:'' });
+  // Duration picker
+  const durWrap = document.getElementById('bm-duration-wrap');
+  const durBtns = document.getElementById('bm-duration-btns');
+  if (service.durations && service.durations.length > 1) {
+    durBtns.innerHTML = service.durations.map((d, i) =>
+      `<button class="bm-dur-btn${i === 0 ? ' active' : ''}" onclick="bmSelectDuration(${d.min},'${d.price}',this)">${d.min} min — ${d.price}</button>`
+    ).join('');
+    bmSelectedDuration = service.durations[0].min;
+    bmSelectedDurationPrice = service.durations[0].price;
+    if (durWrap) durWrap.style.display = '';
+  } else {
+    bmSelectedDuration = service.duration || 60;
+    bmSelectedDurationPrice = service.price || '';
+    if (durWrap) durWrap.style.display = 'none';
+  }
   _bmHideAllSteps();
   document.getElementById('bm-step-1').style.display = '';
   _bmUpdateStepIndicator(1);
@@ -2496,7 +2518,16 @@ function closeBookingModal() {
 }
 
 let bmHasSpaIntake = false;
+let bmSelectedDuration = 60; // minutes — set by duration picker or from service.duration
+let bmSelectedDurationPrice = ''; // price label for selected duration
 const bmIntake = { medications:'no', injuries:'no', pregnant:'no', chronicPain:'no', allergies:'no', pressure:'medium', oilAllergies:[], areasAvoid:'', goals:'' };
+
+function bmSelectDuration(min, price, btnEl) {
+  bmSelectedDuration = min;
+  bmSelectedDurationPrice = price;
+  document.querySelectorAll('#bm-duration-btns .bm-dur-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+}
 
 function _bmHideAllSteps() {
   ['bm-step-1','bm-step-2','bm-step-3'].forEach(id => {
@@ -2689,14 +2720,14 @@ async function submitBooking() {
   const hour = parseInt(time.split(':')[0], 10);
   const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
 
-  // Conflict detection — massage: 90min before + 15min after; beauty: 120min before + 30min after
+  // Conflict detection — use selected duration as beforeBuffer; afterBuffer stays 15min (massage) / 30min (beauty)
   // Query ALL bookings on this date, filter by type in JS to avoid service_category mismatch
   const conflictErrEl = document.getElementById('bm-conflict-error');
   if (conflictErrEl) conflictErrEl.style.display = 'none';
   if (calType === 'massage' || calType === 'beauty') {
     const [reqH, reqM] = time.split(':').map(Number);
     const reqMins = reqH * 60 + reqM;
-    const beforeBuffer = calType === 'massage' ? 90 : 120;
+    const beforeBuffer = bmSelectedDuration || (calType === 'massage' ? 90 : 120);
     const afterBuffer  = calType === 'massage' ? 15 : 30;
     // Match any category that contains 'massage'/'beauty' — handles plural/alternate spellings
     const catKeyword = calType === 'massage' ? 'massage' : 'beauty';
@@ -2737,6 +2768,9 @@ async function submitBooking() {
     }
   }
 
+  const durationMin = bmSelectedDuration || service.duration || 60;
+  const durationLabel = `${durationMin} min`;
+
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
     const calActivities = raw ? JSON.parse(raw) : [];
@@ -2748,7 +2782,7 @@ async function submitBooking() {
       date: dateStr,
       type: calType,
       time: time,
-      duration: service.duration || 60,
+      duration: durationMin,
       client: `${service.name} — ${name}`,
       staff: therapistPreference || '',
       by: '',
@@ -2778,7 +2812,7 @@ async function submitBooking() {
       return s || 'other';
     };
     const savedCategory = _normCat(calType !== 'other' ? calType : category);
-    console.log('[booking-save] service_category being saved:', savedCategory, '| calType:', calType, '| category:', category);
+    console.log('[booking-save] service_category:', savedCategory, '| calType:', calType, '| duration:', durationLabel);
     fetch(`${SUPA_URL}/rest/v1/guest_bookings`, {
       method: 'POST',
       headers: HEADERS,
@@ -2789,6 +2823,7 @@ async function submitBooking() {
         service_category: savedCategory,
         date: dateStr,
         time: time,
+        duration: durationLabel,
         status: 'confirmed',
         intake_medications: intakeForDb.medications || 'no',
         intake_injuries: intakeForDb.injuries || 'no',
@@ -2808,7 +2843,7 @@ async function submitBooking() {
 
   // Push notification
   const _ntfyDateLabel = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' }) : '';
-  _ntfyBooking(`${service.icon || _emojiForType(calType)} ${service.name}\nGuest: ${name}\nRoom: ${room}${_ntfyDateLabel ? '\nDate: ' + _ntfyDateLabel : ''}\nTime: ${time}`);
+  _ntfyBooking(`${service.icon || _emojiForType(calType)} ${service.name} · ${durationLabel}\nGuest: ${name}\nRoom: ${room}${_ntfyDateLabel ? '\nDate: ' + _ntfyDateLabel : ''}\nTime: ${time}`);
 
   // Show success screen inside modal
   document.querySelectorAll('#booking-modal .bm-steps, #bm-step-1, #bm-step-2, #bm-step-3').forEach(el => el.style.display = 'none');
@@ -2818,7 +2853,7 @@ async function submitBooking() {
     const ampm = bmH.h24 >= 12 ? 'PM' : 'AM';
     const timeStr = `${h}:${String(bmM.m).padStart(2,'0')} ${ampm}`;
     const dateDisplay = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) : '';
-    document.getElementById('bm-success-service').textContent = service.name;
+    document.getElementById('bm-success-service').textContent = `${service.name} · ${durationLabel}`;
     document.getElementById('bm-success-datetime').textContent = [dateDisplay, timeStr].filter(Boolean).join(' · ');
     successEl.style.display = 'block';
     launchEmojiShower(service.icon || _emojiForType(calType));
