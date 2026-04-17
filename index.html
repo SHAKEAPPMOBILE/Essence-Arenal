@@ -2818,7 +2818,6 @@ async function submitBooking() {
   else if (nameLower.includes('massage') || nameLower.includes('masaje')) calType = 'massage';
   else if (nameLower.includes('facial') || nameLower.includes('beauty')) calType = 'beauty';
   else if (nameLower.includes('therapy') || nameLower.includes('terapia') || nameLower.includes('nlp')) calType = 'therapy';
-  console.log('[calType] service:', service.name, '| category:', category, '| calType:', calType);
 
   const fincaTypes = ['night', 'bird', 'cacao', 'kayak', 'cooking', 'foresttherapy'];
   const dateStr = date || new Date().toISOString().split('T')[0];
@@ -2841,13 +2840,9 @@ async function submitBooking() {
     let fetchFailed = false;
     try {
       const conflictUrl = `${SUPA_URL}/rest/v1/guest_bookings?date=eq.${encodeURIComponent(dateStr)}&select=time,service_category`;
-      console.log('[conflict-check] querying:', conflictUrl);
       const conflictRes = await fetch(conflictUrl, { headers: HEADERS });
-      console.log('[conflict-check] response status:', conflictRes.status);
       if (!conflictRes.ok) throw new Error(`HTTP ${conflictRes.status}`);
       const conflictRows = await conflictRes.json();
-      console.log('[conflict-check] rows returned:', JSON.stringify(conflictRows));
-      console.log('[conflict-check] calType:', calType, '| category (bookingContext):', category, '| reqMins:', reqMins, '| beforeBuffer:', beforeBuffer, '| afterBuffer:', afterBuffer);
       conflictFound = conflictRows.some(row => {
         if (!row.time) return false;
         const rowCat = (row.service_category || '').toLowerCase();
@@ -2855,7 +2850,6 @@ async function submitBooking() {
         const [aH, aM] = row.time.split(':').map(Number);
         const existMins = aH * 60 + aM;
         const isConflict = catMatches && existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
-        console.log(`[conflict-check] row: time=${row.time} (${existMins}min) cat="${rowCat}" catMatches=${catMatches} → conflict=${isConflict}`);
         return isConflict;
       });
     } catch(e) {
@@ -2917,7 +2911,6 @@ async function submitBooking() {
       return s || 'other';
     };
     const savedCategory = _normCat(calType !== 'other' ? calType : category);
-    console.log('[booking-save] service_category:', savedCategory, '| calType:', calType, '| duration:', durationLabel);
     fetch(`${SUPA_URL}/rest/v1/guest_bookings`, {
       method: 'POST',
       headers: HEADERS,
@@ -4973,7 +4966,7 @@ function openModal(act, dayIndex, slotId, dateStr) {
       const _gd = encodeURIComponent(act.date || '');
       const _gt = encodeURIComponent(act.time || '');
       const _gs = encodeURIComponent(act.serviceName || '');
-      fetch(`${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&service_name=eq.${_gs}&limit=1`, { headers: HEADERS })
+      fetch(`${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`, { headers: HEADERS })
         .then(r => r.ok ? r.json() : [])
         .then(rows => {
           if (rows && rows.length > 0) {
