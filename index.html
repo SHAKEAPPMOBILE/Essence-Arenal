@@ -964,6 +964,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
       <div class="modal-title" id="bm-step3-title">Your Details</div>
       <div class="field-group"><label id="bm-step3-room-label" for="bm-room">Room Number</label><input type="text" id="bm-room" required placeholder="e.g. 12"></div>
       <div class="field-group"><label id="bm-step3-name-label" for="bm-name">Your Name</label><input type="text" id="bm-name" required placeholder="Full Name"></div>
+      <div id="bm-conflict-error" style="display:none;margin:.75rem 0 .25rem;padding:.6rem .9rem;border-radius:6px;background:rgba(200,60,60,0.12);border:1px solid rgba(200,60,60,0.35);color:#e07070;font-size:.78rem;line-height:1.45;"></div>
       <div class="modal-actions" style="justify-content:space-between;">
         <button class="btn-ghost" id="bm-step3-back" onclick="bmGoStep3Back()">← Back</button>
         <button class="btn-confirm" id="bm-confirm-btn" onclick="submitBooking()">Confirm Booking</button>
@@ -2508,6 +2509,8 @@ function bmGoStep1() {
   _bmUpdateStepIndicator(1);
 }
 function bmGoStep3Back() {
+  const ce = document.getElementById('bm-conflict-error');
+  if (ce) ce.style.display = 'none';
   _bmHideAllSteps();
   if (bmHasSpaIntake) {
     document.getElementById('bm-step-2').style.display = '';
@@ -2661,6 +2664,33 @@ function submitBooking() {
   const dateStr = date || new Date().toISOString().split('T')[0];
   const hour = parseInt(time.split(':')[0], 10);
   const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
+
+  // Conflict detection for massage (15 min buffer) and beauty (30 min buffer)
+  const conflictErrEl = document.getElementById('bm-conflict-error');
+  if (conflictErrEl) conflictErrEl.style.display = 'none';
+  const conflictBufferMin = calType === 'massage' ? 15 : calType === 'beauty' ? 30 : 0;
+  if (conflictBufferMin > 0) {
+    const [reqH, reqM] = time.split(':').map(Number);
+    const reqMins = reqH * 60 + reqM;
+    try {
+      const existingRaw = localStorage.getItem('essence_arenal_calendar_v1');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const conflict = existing.some(act => {
+        if (act.date !== dateStr) return false;
+        if (act.type !== calType) return false;
+        if (!act.time) return false;
+        const [aH, aM] = act.time.split(':').map(Number);
+        return Math.abs((aH * 60 + aM) - reqMins) < conflictBufferMin;
+      });
+      if (conflict) {
+        if (conflictErrEl) {
+          conflictErrEl.textContent = '⚠ This time slot is already taken. Please go back and choose a different time.';
+          conflictErrEl.style.display = 'block';
+        }
+        return;
+      }
+    } catch(e) { console.warn('[conflict-check]', e); }
+  }
 
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
