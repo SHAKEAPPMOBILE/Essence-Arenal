@@ -2941,6 +2941,33 @@ async function submitBooking() {
     })
     .then(r => console.log('[supabase] booking saved, status:', r.status))
     .catch(e => console.warn('[supabase] POST error:', e));
+
+  // Also save to calendar_events for cross-device admin calendar sync
+  const calEventId = Date.now();
+  fetch(`${SUPA_URL}/rest/v1/calendar_events`, {
+    method: 'POST',
+    headers: HEADERS,
+    body: JSON.stringify({
+      id: calEventId,
+      section: fincaTypes.includes(calType) ? 'finca' : 'hotel',
+      type: calType,
+      date: dateStr,
+      time: time,
+      slot: slotId,
+      dow: new Date(`${dateStr}T00:00:00`).getDay(),
+      client: `${service.name || ''} · ${name}`,
+      service_name: service.name || '',
+      guest_name: name,
+      room: room,
+      duration: durationLabel,
+      source: 'guest_booking',
+      status: 'confirmed',
+      weekly: false,
+      notes: notes || '',
+    })
+  })
+    .then(r => console.log('[supabase] calendar_events saved, status:', r.status))
+    .catch(e => console.warn('[supabase] calendar_events POST error:', e));
   } catch(e) { console.warn('[supabase] error:', e); }
 
   // Push notification
@@ -4744,6 +4771,43 @@ async function renderCalendar() {
   const grid = document.getElementById('calendar-grid');
   if (!weekLabel || !grid) return;
   weekLabel.textContent = formatWeekLabel(weekStart);
+
+  // Fetch remote guest bookings from calendar_events and merge into local activities
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/calendar_events?order=date.asc`, { headers: HEADERS });
+    if (res.ok) {
+      const remoteRows = await res.json();
+      const localIds = new Set(activities.map(a => String(a.id)));
+      remoteRows.forEach(row => {
+        if (localIds.has(String(row.id))) return; // already present locally
+        activities.push({
+          id: row.id,
+          section: row.section || 'hotel',
+          type: row.type || 'other',
+          date: row.date || '',
+          time: row.time || '',
+          slot: row.slot || 'morning',
+          dow: row.dow ?? 0,
+          client: row.client || '',
+          serviceName: row.service_name || '',
+          guestName: row.guest_name || '',
+          room: row.room || '',
+          duration: row.duration || '',
+          source: row.source || 'guest_booking',
+          status: row.status || 'confirmed',
+          weekly: row.weekly || false,
+          notes: row.notes || '',
+          staff: '',
+          by: '',
+        });
+      });
+      // Persist merged result back to localStorage
+      localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(activities));
+    }
+  } catch(e) {
+    console.warn('[calendar_events] fetch error:', e);
+  }
+
   const fragment = document.createDocumentFragment();
   const today = new Date();
   today.setHours(0,0,0,0);
