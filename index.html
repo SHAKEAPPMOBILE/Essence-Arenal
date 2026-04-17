@@ -2680,32 +2680,42 @@ async function submitBooking() {
   const hour = parseInt(time.split(':')[0], 10);
   const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
 
-  // Conflict detection for massage (15 min buffer) and beauty (30 min buffer)
+  // Conflict detection — massage: 90min before + 15min after; beauty: 120min before + 30min after
   const conflictErrEl = document.getElementById('bm-conflict-error');
   if (conflictErrEl) conflictErrEl.style.display = 'none';
-  const conflictBufferMin = calType === 'massage' ? 15 : calType === 'beauty' ? 30 : 0;
-  if (conflictBufferMin > 0) {
+  if (calType === 'massage' || calType === 'beauty') {
     const [reqH, reqM] = time.split(':').map(Number);
     const reqMins = reqH * 60 + reqM;
+    const beforeBuffer = calType === 'massage' ? 90 : 120;
+    const afterBuffer  = calType === 'massage' ? 15 : 30;
+    let conflictFound = false;
+    let fetchFailed = false;
     try {
       const conflictRes = await fetch(
         `${SUPA_URL}/rest/v1/guest_bookings?date=eq.${encodeURIComponent(dateStr)}&service_category=eq.${encodeURIComponent(calType)}`,
         { headers: HEADERS }
       );
-      const conflictRows = conflictRes.ok ? await conflictRes.json() : [];
-      const conflict = conflictRows.some(row => {
+      if (!conflictRes.ok) throw new Error(`HTTP ${conflictRes.status}`);
+      const conflictRows = await conflictRes.json();
+      conflictFound = conflictRows.some(row => {
         if (!row.time) return false;
         const [aH, aM] = row.time.split(':').map(Number);
-        return Math.abs((aH * 60 + aM) - reqMins) < conflictBufferMin;
+        const existMins = aH * 60 + aM;
+        return existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
       });
-      if (conflict) {
-        if (conflictErrEl) {
-          conflictErrEl.textContent = '⚠ This time slot is already taken. Please go back and choose a different time.';
-          conflictErrEl.style.display = 'block';
-        }
-        return;
+    } catch(e) {
+      console.warn('[conflict-check] Supabase error:', e);
+      fetchFailed = true;
+    }
+    if (conflictFound || fetchFailed) {
+      if (conflictErrEl) {
+        conflictErrEl.textContent = fetchFailed
+          ? '⚠ Unable to verify availability. Please call reception to book.'
+          : '⚠ This time slot is already taken. Please go back and choose a different time.';
+        conflictErrEl.style.display = 'block';
       }
-    } catch(e) { console.warn('[conflict-check]', e); }
+      return;
+    }
   }
 
   try {
@@ -2751,13 +2761,13 @@ async function submitBooking() {
         date: dateStr,
         time: time,
         status: 'confirmed',
-        intake_medications: intakeForDb.medications || '',
-        intake_injuries: intakeForDb.injuries || '',
-        intake_pregnant: intakeForDb.pregnant === 'yes' ? true : false,
-        intake_chronic_pain: intakeForDb.chronic_pain === 'yes' ? true : false,
-        intake_allergies: intakeForDb.medical_allergies || '',
-        intake_pressure: intakeForDb.pressure || '',
-        intake_oil_sensitivities: intakeForDb.oil_sensitivities || '',
+        intake_medications: intakeForDb.medications || 'no',
+        intake_injuries: intakeForDb.injuries || 'no',
+        intake_pregnant: intakeForDb.pregnant === 'yes',
+        intake_chronic_pain: intakeForDb.chronic_pain === 'yes',
+        intake_allergies: intakeForDb.medical_allergies || 'no',
+        intake_pressure: intakeForDb.pressure || 'medium',
+        intake_oil_sensitivities: intakeForDb.oil_sensitivities || 'none',
         intake_areas_avoid: intakeForDb.areas_to_avoid || '',
         intake_goals: intakeForDb.treatment_goals || '',
         notes: notes || '',
@@ -4396,18 +4406,21 @@ function buildGuestBookingDetails(act, supaRec) {
     { label: 'Time', value: act.time || '—' },
   ].filter(function(r) { return r.value !== '—'; });
 
-  // Intake: prefer Supabase record fields, fall back to localStorage intake_form
+  // Intake: prefer Supabase record fields (show all), fall back to localStorage intake_form
   const intakeRows = [];
+  const _isYes = v => v === true || v === 'yes';
   if (supaRec) {
-    if (supaRec.intake_medications) intakeRows.push({ label: 'Medications', value: supaRec.intake_medications + ' ⚠' });
-    if (supaRec.intake_injuries) intakeRows.push({ label: 'Injuries', value: supaRec.intake_injuries + ' ⚠' });
-    if (supaRec.intake_pregnant === true) intakeRows.push({ label: 'Pregnant', value: 'Yes ⚠' });
-    if (supaRec.intake_chronic_pain === true) intakeRows.push({ label: 'Chronic Pain', value: 'Yes ⚠' });
-    if (supaRec.intake_allergies) intakeRows.push({ label: 'Allergies', value: supaRec.intake_allergies + ' ⚠' });
-    if (supaRec.intake_pressure && supaRec.intake_pressure !== 'medium') intakeRows.push({ label: 'Pressure Preference', value: supaRec.intake_pressure.charAt(0).toUpperCase() + supaRec.intake_pressure.slice(1) });
-    if (supaRec.intake_oil_sensitivities && supaRec.intake_oil_sensitivities !== 'none') intakeRows.push({ label: 'Oils to Avoid', value: supaRec.intake_oil_sensitivities });
-    if (supaRec.intake_areas_avoid) intakeRows.push({ label: 'Areas to Avoid', value: supaRec.intake_areas_avoid });
-    if (supaRec.intake_goals) intakeRows.push({ label: 'Treatment Goals', value: supaRec.intake_goals });
+    // Show ALL fields always
+    intakeRows.push({ label: 'Medications', value: _isYes(supaRec.intake_medications) ? 'Yes ⚠' : 'No' });
+    intakeRows.push({ label: 'Injuries', value: _isYes(supaRec.intake_injuries) ? 'Yes ⚠' : 'No' });
+    intakeRows.push({ label: 'Pregnant', value: _isYes(supaRec.intake_pregnant) ? 'Yes ⚠' : 'No' });
+    intakeRows.push({ label: 'Chronic Pain', value: _isYes(supaRec.intake_chronic_pain) ? 'Yes ⚠' : 'No' });
+    intakeRows.push({ label: 'Allergies', value: _isYes(supaRec.intake_allergies) ? 'Yes ⚠' : 'No' });
+    const pressureVal = supaRec.intake_pressure || 'medium';
+    intakeRows.push({ label: 'Pressure', value: pressureVal.charAt(0).toUpperCase() + pressureVal.slice(1) });
+    intakeRows.push({ label: 'Oil Sensitivities', value: supaRec.intake_oil_sensitivities || 'None' });
+    intakeRows.push({ label: 'Areas to Avoid', value: supaRec.intake_areas_avoid || '—' });
+    intakeRows.push({ label: 'Treatment Goals', value: supaRec.intake_goals || '—' });
   } else {
     const intake = act.intake_form ? (function() { try { return JSON.parse(act.intake_form); } catch(e) { return {}; } })() : {};
     const ynFields = [
