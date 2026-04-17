@@ -2629,7 +2629,7 @@ function _updateBmTimeDisplay() {
   if (el) el.textContent = `Selected: ${h12}:${String(m.m).padStart(2,'0')} ${ampm}`;
 }
 
-function submitBooking() {
+async function submitBooking() {
   if (!bookingContext) return;
   const { service, category } = bookingContext;
   const room = document.getElementById('bm-room').value.trim();
@@ -2688,13 +2688,14 @@ function submitBooking() {
     const [reqH, reqM] = time.split(':').map(Number);
     const reqMins = reqH * 60 + reqM;
     try {
-      const existingRaw = localStorage.getItem('essence_arenal_calendar_v1');
-      const existing = existingRaw ? JSON.parse(existingRaw) : [];
-      const conflict = existing.some(act => {
-        if (act.date !== dateStr) return false;
-        if (act.type !== calType) return false;
-        if (!act.time) return false;
-        const [aH, aM] = act.time.split(':').map(Number);
+      const conflictRes = await fetch(
+        `${SUPA_URL}/rest/v1/guest_bookings?date=eq.${encodeURIComponent(dateStr)}&service_category=eq.${encodeURIComponent(calType)}`,
+        { headers: HEADERS }
+      );
+      const conflictRows = conflictRes.ok ? await conflictRes.json() : [];
+      const conflict = conflictRows.some(row => {
+        if (!row.time) return false;
+        const [aH, aM] = row.time.split(':').map(Number);
         return Math.abs((aH * 60 + aM) - reqMins) < conflictBufferMin;
       });
       if (conflict) {
@@ -2753,12 +2754,12 @@ function submitBooking() {
         intake_medications: intakeForDb.medications || '',
         intake_injuries: intakeForDb.injuries || '',
         intake_pregnant: intakeForDb.pregnant === 'yes' ? true : false,
-        intake_chronic_pain: intakeForDb.chronicPain === 'yes' ? true : false,
-        intake_allergies: intakeForDb.allergies || '',
+        intake_chronic_pain: intakeForDb.chronic_pain === 'yes' ? true : false,
+        intake_allergies: intakeForDb.medical_allergies || '',
         intake_pressure: intakeForDb.pressure || '',
-        intake_oil_sensitivities: intakeForDb.oilSensitivities || '',
-        intake_areas_avoid: intakeForDb.areasAvoid || '',
-        intake_goals: intakeForDb.goals || '',
+        intake_oil_sensitivities: intakeForDb.oil_sensitivities || '',
+        intake_areas_avoid: intakeForDb.areas_to_avoid || '',
+        intake_goals: intakeForDb.treatment_goals || '',
         notes: notes || '',
       })
     })
@@ -4358,7 +4359,23 @@ function openModal(act, dayIndex, slotId, dateStr) {
   if (isGuestBooking) {
     if (clientSection) clientSection.style.display = 'none';
     if (btnSaveEl) btnSaveEl.style.display = 'none';
-    if (guestDetailsEl) { guestDetailsEl.style.display = ''; guestDetailsEl.innerHTML = buildGuestBookingDetails(act); }
+    if (guestDetailsEl) {
+      guestDetailsEl.style.display = '';
+      guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null);
+      // Fetch Supabase record for accurate health/intake data
+      const _gn = encodeURIComponent(act.guestName || '');
+      const _gd = encodeURIComponent(act.date || '');
+      const _gt = encodeURIComponent(act.time || '');
+      const _gs = encodeURIComponent(act.serviceName || '');
+      fetch(`${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&service_name=eq.${_gs}&limit=1`, { headers: HEADERS })
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => {
+          if (rows && rows.length > 0) {
+            guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows[0]);
+          }
+        })
+        .catch(e => console.warn('[modal] Supabase intake fetch error:', e));
+    }
   } else {
     if (clientSection) clientSection.style.display = '';
     if (btnSaveEl) btnSaveEl.style.display = '';
@@ -4369,8 +4386,7 @@ function openModal(act, dayIndex, slotId, dateStr) {
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
-function buildGuestBookingDetails(act) {
-  const intake = act.intake_form ? (function() { try { return JSON.parse(act.intake_form); } catch(e) { return {}; } })() : {};
+function buildGuestBookingDetails(act, supaRec) {
   const dateStr = act.date ? new Date(act.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '—';
   const mainRows = [
     { label: 'Service', value: act.serviceName || '—' },
@@ -4380,20 +4396,33 @@ function buildGuestBookingDetails(act) {
     { label: 'Time', value: act.time || '—' },
   ].filter(function(r) { return r.value !== '—'; });
 
-  // Intake: only rows with non-empty / non-default values
+  // Intake: prefer Supabase record fields, fall back to localStorage intake_form
   const intakeRows = [];
-  const ynFields = [
-    { key: 'medications', label: 'Medications' },
-    { key: 'injuries', label: 'Injuries' },
-    { key: 'pregnant', label: 'Pregnant' },
-    { key: 'chronic_pain', label: 'Chronic Pain' },
-    { key: 'medical_allergies', label: 'Allergies' },
-  ];
-  ynFields.forEach(function(f) { if (intake[f.key] === 'yes') intakeRows.push({ label: f.label, value: 'Yes ⚠' }); });
-  if (intake.pressure && intake.pressure !== 'medium') intakeRows.push({ label: 'Pressure Preference', value: intake.pressure.charAt(0).toUpperCase() + intake.pressure.slice(1) });
-  if (intake.oil_sensitivities && intake.oil_sensitivities !== 'none') intakeRows.push({ label: 'Oils to Avoid', value: intake.oil_sensitivities });
-  if (intake.areas_to_avoid) intakeRows.push({ label: 'Areas to Avoid', value: intake.areas_to_avoid });
-  if (intake.treatment_goals) intakeRows.push({ label: 'Treatment Goals', value: intake.treatment_goals });
+  if (supaRec) {
+    if (supaRec.intake_medications) intakeRows.push({ label: 'Medications', value: supaRec.intake_medications + ' ⚠' });
+    if (supaRec.intake_injuries) intakeRows.push({ label: 'Injuries', value: supaRec.intake_injuries + ' ⚠' });
+    if (supaRec.intake_pregnant === true) intakeRows.push({ label: 'Pregnant', value: 'Yes ⚠' });
+    if (supaRec.intake_chronic_pain === true) intakeRows.push({ label: 'Chronic Pain', value: 'Yes ⚠' });
+    if (supaRec.intake_allergies) intakeRows.push({ label: 'Allergies', value: supaRec.intake_allergies + ' ⚠' });
+    if (supaRec.intake_pressure && supaRec.intake_pressure !== 'medium') intakeRows.push({ label: 'Pressure Preference', value: supaRec.intake_pressure.charAt(0).toUpperCase() + supaRec.intake_pressure.slice(1) });
+    if (supaRec.intake_oil_sensitivities && supaRec.intake_oil_sensitivities !== 'none') intakeRows.push({ label: 'Oils to Avoid', value: supaRec.intake_oil_sensitivities });
+    if (supaRec.intake_areas_avoid) intakeRows.push({ label: 'Areas to Avoid', value: supaRec.intake_areas_avoid });
+    if (supaRec.intake_goals) intakeRows.push({ label: 'Treatment Goals', value: supaRec.intake_goals });
+  } else {
+    const intake = act.intake_form ? (function() { try { return JSON.parse(act.intake_form); } catch(e) { return {}; } })() : {};
+    const ynFields = [
+      { key: 'medications', label: 'Medications' },
+      { key: 'injuries', label: 'Injuries' },
+      { key: 'pregnant', label: 'Pregnant' },
+      { key: 'chronic_pain', label: 'Chronic Pain' },
+      { key: 'medical_allergies', label: 'Allergies' },
+    ];
+    ynFields.forEach(function(f) { if (intake[f.key] === 'yes') intakeRows.push({ label: f.label, value: 'Yes ⚠' }); });
+    if (intake.pressure && intake.pressure !== 'medium') intakeRows.push({ label: 'Pressure Preference', value: intake.pressure.charAt(0).toUpperCase() + intake.pressure.slice(1) });
+    if (intake.oil_sensitivities && intake.oil_sensitivities !== 'none') intakeRows.push({ label: 'Oils to Avoid', value: intake.oil_sensitivities });
+    if (intake.areas_to_avoid) intakeRows.push({ label: 'Areas to Avoid', value: intake.areas_to_avoid });
+    if (intake.treatment_goals) intakeRows.push({ label: 'Treatment Goals', value: intake.treatment_goals });
+  }
 
   const rowHtml = function(rows) {
     return rows.map(function(r) {
