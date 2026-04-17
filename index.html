@@ -3823,7 +3823,7 @@ function renderTeamSchedule() {
   html += `</div>`;
 
   // ── Weekly shift calendar ──────────────────────────────
-  const start = tsWeekStart(tsWeekOffset);
+  // 'start' already declared above via tsWeekStart(tsWeekOffset)
   const todayStr = new Date().toISOString().split('T')[0];
 
   // Build day columns (Mon=index 0 … Sun=index 6)
