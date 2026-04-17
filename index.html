@@ -4933,7 +4933,7 @@ function openBookingInfoModal(activity) {
   const rows = [
     { label: 'Service', value: serviceName },
     { label: 'Date & Time', value: dateTime || '—' },
-    { label: 'Duration', value: activity.duration ? `${activity.duration} min` : '—' },
+    { label: 'Duration', value: activity.duration ? (String(activity.duration).includes('min') ? String(activity.duration) : `${activity.duration} min`) : '—' },
     { label: 'Guest Name', value: guestName },
     { label: 'Room Number', value: room },
     { label: 'Price', value: activity.price != null ? `$${activity.price}` : '—' },
@@ -5030,15 +5030,18 @@ function openModal(act, dayIndex, slotId, dateStr) {
       guestDetailsEl.style.display = '';
       guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null);
       // Fetch Supabase record for accurate health/intake data
-      const _gn = encodeURIComponent(act.guestName || '');
-      const _gd = encodeURIComponent(act.date || '');
-      const _gt = encodeURIComponent(act.time || '');
-      const _gs = encodeURIComponent(act.serviceName || '');
+      // date must be YYYY-MM-DD (e.g. '2026-04-19'), time must be HH:MM (e.g. '10:00')
+      const _gn = encodeURIComponent((act.guestName || '').trim());
+      const _gd = encodeURIComponent((act.date || '').trim());
+      const _gt = encodeURIComponent((act.time || '').trim());
+      console.warn('[modal] intake fetch — guest_name:', act.guestName, '| date:', act.date, '| time:', act.time);
       fetch(`${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`, { headers: HEADERS })
         .then(r => r.ok ? r.json() : [])
         .then(rows => {
           if (rows && rows.length > 0) {
             guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows[0]);
+          } else {
+            console.warn('[modal] intake fetch returned 0 rows — no match for guest_name:', act.guestName, 'date:', act.date, 'time:', act.time);
           }
         })
         .catch(e => console.warn('[modal] Supabase intake fetch error:', e));
