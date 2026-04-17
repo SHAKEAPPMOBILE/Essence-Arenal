@@ -1007,6 +1007,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <div class="admin-tabs">
 
       <div class="admin-tab" id="atab-calendar" onclick="switchAdminTab('calendar')">📅 Calendar</div>
+      <div class="admin-tab" id="atab-guests" onclick="switchAdminTab('guests')">👥 Guests</div>
       <div class="admin-tab" id="atab-restaurant-soft" onclick="switchAdminTab('restaurant-soft')">🍽️ Restaurant</div>
       <div class="admin-tab" id="atab-shifts" onclick="switchAdminTab('shifts')">🗓️ Team</div>
       <div class="admin-tab" id="atab-rooms" onclick="switchAdminTab('rooms')">🏨 Rooms</div>
@@ -1221,6 +1222,19 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
     <div class="inbox-wrap">
       <div class="inbox-title" style="margin-bottom:20px;">Activity History</div>
       <div id="activity-history-list"></div>
+    </div>
+  </div>
+
+  <!-- GUESTS -->
+  <div id="asec-guests" class="admin-section">
+    <div class="inbox-wrap">
+      <div class="inbox-title" style="margin-bottom:16px;">Guests</div>
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <input id="guests-search" type="text" placeholder="Search by name or room…"
+          oninput="renderGuestsTab()"
+          style="flex:1;padding:9px 14px;border:1px solid #d8d3ca;border-radius:8px;font-size:14px;font-family:inherit;background:#faf9f6;color:var(--forest);outline:none;">
+      </div>
+      <div id="guests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
   </div>
 </div>
@@ -2722,6 +2736,36 @@ function submitBooking() {
     console.warn('[booking-save]', e);
   }
 
+  // Supabase — fire-and-forget POST to guest_bookings
+  try {
+    const intakeForDb = intakeData || {};
+    fetch(`${SUPA_URL}/rest/v1/guest_bookings`, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        guest_name: name,
+        room: room,
+        service_name: service.name || '',
+        service_category: category || calType || '',
+        date: dateStr,
+        time: time,
+        status: 'confirmed',
+        intake_medications: intakeForDb.medications || '',
+        intake_injuries: intakeForDb.injuries || '',
+        intake_pregnant: intakeForDb.pregnant === 'yes' ? true : false,
+        intake_chronic_pain: intakeForDb.chronicPain === 'yes' ? true : false,
+        intake_allergies: intakeForDb.allergies || '',
+        intake_pressure: intakeForDb.pressure || '',
+        intake_oil_sensitivities: intakeForDb.oilSensitivities || '',
+        intake_areas_avoid: intakeForDb.areasAvoid || '',
+        intake_goals: intakeForDb.goals || '',
+        notes: notes || '',
+      })
+    })
+    .then(r => console.log('[supabase] booking saved, status:', r.status))
+    .catch(e => console.warn('[supabase] POST error:', e));
+  } catch(e) { console.warn('[supabase] error:', e); }
+
   // Push notification
   const _ntfyDateLabel = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' }) : '';
   _ntfyBooking(`${service.icon || _emojiForType(calType)} ${service.name}\nGuest: ${name}\nRoom: ${room}${_ntfyDateLabel ? '\nDate: ' + _ntfyDateLabel : ''}\nTime: ${time}`);
@@ -2917,6 +2961,7 @@ function switchAdminTab(tab) {
   if (tab === 'staff') renderStaffTable();
   if (tab === 'shifts') renderTeamSchedule();
   if (tab === 'activity') renderActivityHistory();
+  if (tab === 'guests') renderGuestsTab();
   // 'rooms' needs no render call — static placeholder
 }
 
@@ -2984,6 +3029,94 @@ function renderActivityHistory() {
         <div><span class="status-badge status-approved">confirmed</span></div>
       </div>`;
   }).join('');
+}
+
+async function renderGuestsTab() {
+  const list = document.getElementById('guests-list');
+  if (!list) return;
+  const search = (document.getElementById('guests-search')?.value || '').trim().toLowerCase();
+
+  list.innerHTML = '<div style="color:var(--forest);opacity:0.6;padding:1rem 0;">Loading…</div>';
+
+  let rows = [];
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/guest_bookings?order=created_at.desc&limit=200`, { headers: HEADERS });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    rows = await res.json();
+  } catch(e) {
+    console.warn('[guests-tab] fetch error:', e);
+    list.innerHTML = '<div style="color:#c0392b;padding:1rem 0;">Failed to load guests. Check Supabase connection.</div>';
+    return;
+  }
+
+  if (search) {
+    rows = rows.filter(r =>
+      (r.guest_name || '').toLowerCase().includes(search) ||
+      (r.room || '').toLowerCase().includes(search)
+    );
+  }
+
+  if (rows.length === 0) {
+    list.innerHTML = '<div class="inbox-empty" style="padding:2rem 0;">No guest bookings found.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  rows.forEach((r, idx) => {
+    const dateLabel = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) : '';
+    const timeLabel = r.time || '';
+
+    const intakeFields = [
+      { label: 'Medications', val: r.intake_medications },
+      { label: 'Injuries', val: r.intake_injuries },
+      { label: 'Pregnant', val: r.intake_pregnant === true ? 'Yes' : '' },
+      { label: 'Chronic Pain', val: r.intake_chronic_pain === true ? 'Yes' : '' },
+      { label: 'Allergies', val: r.intake_allergies },
+      { label: 'Pressure', val: r.intake_pressure },
+      { label: 'Oil Sensitivities', val: r.intake_oil_sensitivities },
+      { label: 'Areas to Avoid', val: r.intake_areas_avoid },
+      { label: 'Goals', val: r.intake_goals },
+      { label: 'Notes', val: r.notes },
+    ].filter(f => f.val && f.val !== '' && f.val !== 'medium' && f.val !== 'none' && f.val !== false);
+
+    const intakeHTML = intakeFields.length > 0 ? `
+      <div id="guest-intake-${idx}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(26,46,26,0.1);">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest);opacity:0.6;margin-bottom:8px;">Health & Preferences</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
+          ${intakeFields.map(f => `
+            <div>
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--forest);opacity:0.55;">${f.label}</div>
+              <div style="font-size:13px;color:var(--forest);">${f.val}</div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    const expandBtn = intakeFields.length > 0
+      ? `<button onclick="const el=document.getElementById('guest-intake-${idx}');el.style.display=el.style.display==='none'?'block':'none';this.textContent=el.style.display==='none'?'▾ Health':'▴ Health';"
+           style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--forest);opacity:0.6;padding:0;margin-left:8px;">▾ Health</button>`
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'booking-item';
+    card.style.flexDirection = 'column';
+    card.style.alignItems = 'stretch';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;">
+          <div class="bi-name" style="display:flex;align-items:center;gap:4px;">
+            ${r.guest_name || '—'}
+            <span style="font-weight:400;color:var(--forest);opacity:0.55;font-size:13px;">· Room ${r.room || '—'}</span>
+          </div>
+          <div class="bi-detail" style="margin-top:2px;">${r.service_name || '—'} ${dateLabel ? '· ' + dateLabel : ''} ${timeLabel ? '· ' + timeLabel : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="status-badge status-approved">${r.status || 'confirmed'}</span>
+          ${expandBtn}
+        </div>
+      </div>
+      ${intakeHTML}`;
+    list.appendChild(card);
+  });
 }
 
 function switchRestaurantTab(tab) {
