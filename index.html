@@ -3659,12 +3659,22 @@ let tsActiveEmp = null;
 
 const TS_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const TS_DAYS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const TS_EMP_COLORS = [
+  { bg:'#e8f4ea', text:'#2d5a3d' },
+  { bg:'#fef3dc', text:'#6b4c1e' },
+  { bg:'#e8eaf4', text:'#2d3a6b' },
+  { bg:'#fde8e8', text:'#6b2d2d' },
+  { bg:'#e8f4f4', text:'#2d5a5a' },
+  { bg:'#f4ece8', text:'#6b4a2d' },
+  { bg:'#e8f4f0', text:'#2d5a4a' },
+  { bg:'#f4e8f4', text:'#5a2d6b' },
+];
 
 function tsWeekStart(offset) {
   const d = new Date();
   d.setHours(0,0,0,0);
   const day = d.getDay();
-  d.setDate(d.getDate() - day + offset * 7);
+  d.setDate(d.getDate() - (day + 6) % 7 + offset * 7); // Monday start
   return d;
 }
 
@@ -3802,7 +3812,72 @@ function renderTeamSchedule() {
   });
 
   html += `</div>`;
+
+  // ── Weekly shift calendar ──────────────────────────────
+  const start = tsWeekStart(tsWeekOffset);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Build day columns (Mon=index 0 … Sun=index 6)
+  const days = Array.from({length:7}, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return { date: d.toISOString().split('T')[0], d };
+  });
+
+  // Colour map: emp → {bg, text}
+  const colorMap = {};
+  members.forEach((emp, i) => { colorMap[emp] = TS_EMP_COLORS[i % TS_EMP_COLORS.length]; });
+
+  // Header row
+  let calHtml = `<div style="display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));border-radius:8px 8px 0 0;overflow:hidden;">`;
+  days.forEach(({date, d}) => {
+    const isToday = date === todayStr;
+    calHtml += `<div style="padding:8px 10px;background:${isToday?'var(--forest)':'rgba(26,46,26,0.07)'};color:${isToday?'#fff':'var(--forest)'};font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;text-align:center;border-right:1px solid rgba(26,46,26,0.08);">
+      ${TS_DAYS[d.getDay()]} ${d.getDate()}
+    </div>`;
+  });
+  calHtml += `</div>`;
+
+  // Cell rows
+  calHtml += `<div style="display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));border:1px solid rgba(26,46,26,0.1);border-top:none;border-radius:0 0 8px 8px;background:#fff;min-height:80px;">`;
+  days.forEach(({date, d}) => {
+    const isToday = date === todayStr;
+    calHtml += `<div style="padding:8px 6px;border-right:1px solid rgba(26,46,26,0.07);background:${isToday?'rgba(26,46,26,0.03)':'transparent'};display:flex;flex-direction:column;gap:5px;" id="ts-cal-cell-${date}">`;
+    members.forEach(emp => {
+      const dayShifts = (teamShifts[emp] || {})[date] || [];
+      const col = colorMap[emp];
+      dayShifts.forEach(s => {
+        calHtml += `<div style="background:${col.bg};color:${col.text};border-radius:6px;padding:4px 7px;font-size:.72rem;line-height:1.35;">
+          <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${emp.split(' ')[0]}</div>
+          <div style="opacity:.8;">${s.start}–${s.end}</div>
+        </div>`;
+      });
+    });
+    calHtml += `</div>`;
+  });
+  calHtml += `</div>`;
+
+  html += `
+    <div style="margin-top:24px;">
+      <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--forest);opacity:.55;margin-bottom:10px;">Turnos esta semana</div>
+      <div id="ts-shift-cal-outer" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <div id="ts-shift-cal-grid" style="min-width:910px;">${calHtml}</div>
+      </div>
+    </div>`;
+
   view.innerHTML = html;
+
+  // Scroll so today's column is the first visible column
+  requestAnimationFrame(() => {
+    const outer = document.getElementById('ts-shift-cal-outer');
+    const grid  = document.getElementById('ts-shift-cal-grid');
+    if (!outer || !grid) return;
+    const todayIdx = days.findIndex(({date}) => date === todayStr);
+    if (todayIdx > 0) {
+      const colW = grid.scrollWidth / 7;
+      outer.scrollLeft = colW * todayIdx;
+    }
+  });
 }
 
 function tsSelectDept(dept) {
