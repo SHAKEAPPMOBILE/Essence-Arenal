@@ -668,6 +668,18 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .calendar-tiny-btn:hover { border-color:#c0392b; color:#c0392b; }
 .calendar-modal-footer { padding:14px 22px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid rgba(26,46,26,0.12); background:var(--cream); }
 .calendar-btn-cancel { background:#fff; border:1px solid rgba(26,46,26,0.15); border-radius:4px; padding:9px 18px; font-size:13px; color:var(--mid); cursor:pointer; }
+/* Force dark readable text inside admin modals */
+#availability-modal .calendar-form-label,
+#audit-modal .calendar-form-label { color:#1a2b1a; }
+#availability-modal .calendar-mini-table th,
+#audit-modal .calendar-mini-table th { color:#1a2b1a; }
+#availability-modal .calendar-mini-table td,
+#audit-modal .calendar-mini-table td { color:#1a2b1a; }
+#availability-modal .calendar-btn-cancel,
+#audit-modal .calendar-btn-cancel { color:#1a2b1a; }
+#availability-modal .calendar-form-select,
+#availability-modal .calendar-form-input { color:#1a2b1a; }
+#availability-modal select option { color:#1a2b1a; }
 .calendar-btn-save { background:var(--forest); border:none; border-radius:4px; padding:9px 22px; font-size:13px; color:var(--mist); cursor:pointer; font-weight:500; }
 .client-pills-container { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 .client-pill-tag { display:inline-flex; align-items:center; gap:4px; background:rgba(26,46,26,0.07); border:1px solid rgba(26,46,26,0.15); border-radius:999px; padding:3px 8px 3px 10px; font-size:12px; color:var(--charcoal); }
@@ -1234,7 +1246,6 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   <!-- GUESTS -->
   <div id="asec-guests" class="admin-section">
     <div class="inbox-wrap">
-      <div class="inbox-title" style="margin-bottom:16px;">Guests</div>
       <div style="display:flex;gap:10px;margin-bottom:20px;">
         <input id="guests-search" type="text" placeholder="Search by name or room…"
           oninput="renderGuestsTab()"
@@ -3253,33 +3264,31 @@ async function renderGuestsTab() {
 
     const intakeHTML = intakeFields.length > 0 ? `
       <div id="guest-intake-${idx}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(26,46,26,0.1);">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest);opacity:0.6;margin-bottom:8px;">Health & Preferences</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#2d4a2d;margin-bottom:8px;">Health & Preferences</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
           ${intakeFields.map(f => `
             <div>
-              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--forest);opacity:0.55;">${f.label}</div>
-              <div style="font-size:13px;color:var(--forest);">${f.val}</div>
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#555;">${f.label}</div>
+              <div style="font-size:13px;color:#1a1a1a;">${f.val}</div>
             </div>`).join('')}
         </div>
       </div>` : '';
 
     const expandBtn = intakeFields.length > 0
       ? `<button onclick="const el=document.getElementById('guest-intake-${idx}');el.style.display=el.style.display==='none'?'block':'none';this.textContent=el.style.display==='none'?'▾ Health':'▴ Health';"
-           style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--forest);opacity:0.6;padding:0;margin-left:8px;">▾ Health</button>`
+           style="background:none;border:none;cursor:pointer;font-size:12px;color:#444;padding:0;margin-left:8px;">▾ Health</button>`
       : '';
 
     const card = document.createElement('div');
-    card.className = 'booking-item';
-    card.style.flexDirection = 'column';
-    card.style.alignItems = 'stretch';
+    card.style.cssText = 'background:#fff;border:1px solid rgba(26,46,26,0.12);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;align-items:stretch;gap:0;';
     card.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="flex:1;">
-          <div class="bi-name" style="display:flex;align-items:center;gap:4px;">
+          <div style="font-family:\'Cormorant Garamond\',serif;font-size:1.05rem;color:#1a1a1a;display:flex;align-items:center;gap:4px;">
             ${r.guest_name || '—'}
-            <span style="font-weight:400;color:var(--forest);opacity:0.55;font-size:13px;">· Room ${r.room || '—'}</span>
+            <span style="font-weight:400;color:#555;font-size:13px;">· Room ${r.room || '—'}</span>
           </div>
-          <div class="bi-detail" style="margin-top:2px;">${r.service_name || '—'} ${dateLabel ? '· ' + dateLabel : ''} ${timeLabel ? '· ' + timeLabel : ''}</div>
+          <div style="font-size:.75rem;color:#444;letter-spacing:.05em;margin-top:3px;">${r.service_name || '—'}${r.duration ? ' · ' + r.duration : ''}${dateLabel ? ' · ' + dateLabel : ''}${timeLabel ? ' · ' + timeLabel : ''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-badge status-approved">${r.status || 'confirmed'}</span>
