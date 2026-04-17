@@ -546,17 +546,17 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
   display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:18px; line-height:1; cursor:pointer; transition:background .2s;
 }
 .btn-add-activity:hover { background:#d97269; }
-.calendar-wrapper { flex:1; padding:24px 28px; overflow-x:auto; }
+.calendar-wrapper { flex:1; padding:24px 28px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .calendar-grid {
-  display:grid; grid-template-columns:80px repeat(7,1fr); min-width:760px; border:1px solid rgba(26,46,26,0.12);
-  border-radius:8px; overflow:hidden; background:var(--warm-white); box-shadow:0 2px 16px rgba(26,46,26,0.03);
+  display:grid; grid-template-columns:80px repeat(7,minmax(140px,1fr)); min-width:1060px; border:1px solid rgba(26,46,26,0.12);
+  border-radius:8px; overflow:visible; background:var(--warm-white); box-shadow:0 2px 16px rgba(26,46,26,0.03);
 }
 #guest-cal-grid { grid-template-columns:80px repeat(4,minmax(110px,1fr)); min-width:520px; }
 .col-header {
   background:var(--forest); color:var(--mist); padding:12px 8px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);
 }
 .col-header:last-child { border-right:none; }
-.col-header.time-header { background:var(--forest); }
+.col-header.time-header { background:var(--forest); position:sticky; left:0; z-index:3; }
 .col-header .day-name {
   font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--sage); display:block;
 }
@@ -576,6 +576,7 @@ button, .abtn, .nav-tab, .admin-tab, .book-btn, .btn-primary, .btn-gold, .btn-gh
 .time-label {
   background:var(--warm-white); border-top:1px solid #e8e4dc; border-right:1px solid #e8e4dc;
   padding:10px 6px 10px 10px; display:flex; align-items:flex-start;
+  position:sticky; left:0; z-index:2;
 }
 .time-label span { font-size:10px; letter-spacing:.06em; color:var(--mid); white-space:nowrap; }
 .day-cell {
