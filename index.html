@@ -2873,7 +2873,7 @@ async function submitBooking() {
   try {
     const raw = localStorage.getItem('essence_arenal_calendar_v1');
     const calActivities = raw ? JSON.parse(raw) : [];
-    calActivities.push({
+    const calEntry = {
       id: Date.now() + Math.random(),
       section: fincaTypes.includes(calType) ? 'finca' : 'hotel',
       dow: new Date(`${dateStr}T00:00:00`).getDay(),
@@ -2893,8 +2893,16 @@ async function submitBooking() {
       guestName: name,
       room: room,
       intake_form: intakeData ? JSON.stringify(intakeData) : null,
-    });
+    };
+    calActivities.push(calEntry);
     localStorage.setItem('essence_arenal_calendar_v1', JSON.stringify(calActivities));
+    console.log('[booking-cal] saved to localStorage:', JSON.stringify(calEntry));
+    console.log('[booking-cal] date:', calEntry.date, '| slot:', calEntry.slot, '| dow:', calEntry.dow, '| type:', calEntry.type, '| section:', calEntry.section);
+    console.log('[booking-cal] total entries in storage now:', calActivities.length);
+    // Sync in-memory activities array so admin calendar renders this booking immediately
+    // without needing a page reload (renderCalendar reads from `activities`, not localStorage)
+    if (typeof loadData === 'function') loadData();
+    if (typeof scheduleCalendarRender === 'function') scheduleCalendarRender();
   } catch(e) {
     console.warn('[booking-save]', e);
   }
