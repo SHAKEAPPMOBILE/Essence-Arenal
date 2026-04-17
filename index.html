@@ -2689,10 +2689,9 @@ async function submitBooking() {
     const reqMins = reqH * 60 + reqM;
     const beforeBuffer = calType === 'massage' ? 90 : 120;
     const afterBuffer  = calType === 'massage' ? 15 : 30;
-    // All possible category values that map to this calType
-    const matchCategories = calType === 'massage'
-      ? ['massage', 'spa']
-      : ['beauty', 'facial'];
+    // Match any category that contains 'massage'/'beauty' — handles plural/alternate spellings
+    const catKeyword = calType === 'massage' ? 'massage' : 'beauty';
+    const catAlso    = calType === 'massage' ? 'spa' : 'facial';
     let conflictFound = false;
     let fetchFailed = false;
     try {
@@ -2702,16 +2701,16 @@ async function submitBooking() {
       console.log('[conflict-check] response status:', conflictRes.status);
       if (!conflictRes.ok) throw new Error(`HTTP ${conflictRes.status}`);
       const conflictRows = await conflictRes.json();
-      console.log('[conflict-check] rows returned:', conflictRows);
-      console.log('[conflict-check] calType:', calType, '| category:', category, '| reqMins:', reqMins, '| beforeBuffer:', beforeBuffer, '| afterBuffer:', afterBuffer);
+      console.log('[conflict-check] rows returned:', JSON.stringify(conflictRows));
+      console.log('[conflict-check] calType:', calType, '| category (bookingContext):', category, '| reqMins:', reqMins, '| beforeBuffer:', beforeBuffer, '| afterBuffer:', afterBuffer);
       conflictFound = conflictRows.some(row => {
         if (!row.time) return false;
         const rowCat = (row.service_category || '').toLowerCase();
-        if (!matchCategories.includes(rowCat)) return false;
+        const catMatches = rowCat.includes(catKeyword) || rowCat.includes(catAlso);
         const [aH, aM] = row.time.split(':').map(Number);
         const existMins = aH * 60 + aM;
-        const isConflict = existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
-        console.log(`[conflict-check] row time=${row.time} (${existMins}min) cat=${rowCat} → conflict=${isConflict}`);
+        const isConflict = catMatches && existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
+        console.log(`[conflict-check] row: time=${row.time} (${existMins}min) cat="${rowCat}" catMatches=${catMatches} → conflict=${isConflict}`);
         return isConflict;
       });
     } catch(e) {
@@ -2761,6 +2760,9 @@ async function submitBooking() {
   // Supabase — fire-and-forget POST to guest_bookings
   try {
     const intakeForDb = intakeData || {};
+    // Always use calType as service_category so conflict detection can reliably match it
+    const savedCategory = calType || category || '';
+    console.log('[booking-save] service_category being saved:', savedCategory, '| calType:', calType, '| category:', category);
     fetch(`${SUPA_URL}/rest/v1/guest_bookings`, {
       method: 'POST',
       headers: HEADERS,
@@ -2768,7 +2770,7 @@ async function submitBooking() {
         guest_name: name,
         room: room,
         service_name: service.name || '',
-        service_category: category || calType || '',
+        service_category: savedCategory,
         date: dateStr,
         time: time,
         status: 'confirmed',
