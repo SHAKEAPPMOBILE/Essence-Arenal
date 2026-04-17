@@ -2681,6 +2681,7 @@ async function submitBooking() {
   const slotId = hour >= 17 ? 'evening' : hour >= 14 ? 'afternoon' : hour >= 10 ? 'midday' : 'morning';
 
   // Conflict detection — massage: 90min before + 15min after; beauty: 120min before + 30min after
+  // Query ALL bookings on this date, filter by type in JS to avoid service_category mismatch
   const conflictErrEl = document.getElementById('bm-conflict-error');
   if (conflictErrEl) conflictErrEl.style.display = 'none';
   if (calType === 'massage' || calType === 'beauty') {
@@ -2688,20 +2689,30 @@ async function submitBooking() {
     const reqMins = reqH * 60 + reqM;
     const beforeBuffer = calType === 'massage' ? 90 : 120;
     const afterBuffer  = calType === 'massage' ? 15 : 30;
+    // All possible category values that map to this calType
+    const matchCategories = calType === 'massage'
+      ? ['massage', 'spa']
+      : ['beauty', 'facial'];
     let conflictFound = false;
     let fetchFailed = false;
     try {
-      const conflictRes = await fetch(
-        `${SUPA_URL}/rest/v1/guest_bookings?date=eq.${encodeURIComponent(dateStr)}&service_category=eq.${encodeURIComponent(calType)}`,
-        { headers: HEADERS }
-      );
+      const conflictUrl = `${SUPA_URL}/rest/v1/guest_bookings?date=eq.${encodeURIComponent(dateStr)}&select=time,service_category`;
+      console.log('[conflict-check] querying:', conflictUrl);
+      const conflictRes = await fetch(conflictUrl, { headers: HEADERS });
+      console.log('[conflict-check] response status:', conflictRes.status);
       if (!conflictRes.ok) throw new Error(`HTTP ${conflictRes.status}`);
       const conflictRows = await conflictRes.json();
+      console.log('[conflict-check] rows returned:', conflictRows);
+      console.log('[conflict-check] calType:', calType, '| category:', category, '| reqMins:', reqMins, '| beforeBuffer:', beforeBuffer, '| afterBuffer:', afterBuffer);
       conflictFound = conflictRows.some(row => {
         if (!row.time) return false;
+        const rowCat = (row.service_category || '').toLowerCase();
+        if (!matchCategories.includes(rowCat)) return false;
         const [aH, aM] = row.time.split(':').map(Number);
         const existMins = aH * 60 + aM;
-        return existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
+        const isConflict = existMins >= (reqMins - beforeBuffer) && existMins <= (reqMins + afterBuffer);
+        console.log(`[conflict-check] row time=${row.time} (${existMins}min) cat=${rowCat} → conflict=${isConflict}`);
+        return isConflict;
       });
     } catch(e) {
       console.warn('[conflict-check] Supabase error:', e);
