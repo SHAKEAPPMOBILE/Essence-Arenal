@@ -4920,7 +4920,6 @@ function handleBookingInfoOverlayClick(e) {
 }
 
 function openBookingInfoModal(activity) {
-  console.warn('[bookingInfoModal] opening:', activity.source, activity.guestName);
   const host = document.getElementById('booking-info-content');
   if (!host) return;
   const serviceName = activity.serviceName || getTypeNameById(activity.type) || '—';
@@ -4992,18 +4991,14 @@ function openBookingInfoModal(activity) {
     const _gd = encodeURIComponent((activity.date || '').trim());
     const _gt = encodeURIComponent((activity.time || '').trim());
     const primaryUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`;
-    console.warn('[modal-intake] firing fetch for:', primaryUrl);
     fetch(primaryUrl, { headers: HEADERS })
       .then(r => r.ok ? r.json() : [])
       .then(rows => {
-        console.warn('[modal-intake] primary rows:', rows.length, rows);
         if (rows && rows.length > 0) { _renderIntake(rows[0]); return; }
         const fallbackUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&order=created_at.desc&limit=1`;
-        console.warn('[modal-intake] firing fallback fetch for:', fallbackUrl);
         return fetch(fallbackUrl, { headers: HEADERS })
           .then(r => r.ok ? r.json() : [])
           .then(rows2 => {
-            console.warn('[modal-intake] fallback rows:', rows2.length, rows2);
             if (rows2 && rows2.length > 0) {
               _renderIntake(rows2[0]);
             } else {
@@ -5012,7 +5007,7 @@ function openBookingInfoModal(activity) {
             }
           });
       })
-      .catch(e => console.warn('[modal-intake] fetch error:', e));
+      .catch(e => console.warn('[modal] intake fetch error:', e));
   }
 
   document.getElementById('booking-info-modal').classList.add('open');
@@ -5040,7 +5035,6 @@ function buildTypeGrid() {
 }
 
 function openModal(act, dayIndex, slotId, dateStr) {
-  console.warn('[modal] opening for activity:', act ? act.source : 'new', act ? act.guestName : null, act ? act.date : null, act ? act.time : null);
   const isEdit = act !== null;
   editingId = act ? act.id : null;
   pendingCell = act ? null : { dayIndex, slotId, dateStr };
@@ -5100,23 +5094,18 @@ function openModal(act, dayIndex, slotId, dateStr) {
       const _gd = encodeURIComponent((act.date || '').trim());
       const _gt = encodeURIComponent((act.time || '').trim());
       const primaryUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`;
-      console.warn('[modal] intake fetch URL:', primaryUrl);
-      console.warn('[modal-intake] firing fetch for:', primaryUrl);
       fetch(primaryUrl, { headers: HEADERS })
         .then(r => r.ok ? r.json() : [])
         .then(rows => {
-          console.warn('[modal] intake primary rows:', rows.length, rows);
           if (rows && rows.length > 0) {
             guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows[0], false);
             return;
           }
           // Fallback: name + date only (time may not match exactly)
           const fallbackUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&order=created_at.desc&limit=1`;
-          console.warn('[modal] intake fallback URL:', fallbackUrl);
           return fetch(fallbackUrl, { headers: HEADERS })
             .then(r => r.ok ? r.json() : [])
             .then(rows2 => {
-              console.warn('[modal] intake fallback rows:', rows2.length, rows2);
               if (rows2 && rows2.length > 0) {
                 guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows2[0], false);
               } else {
