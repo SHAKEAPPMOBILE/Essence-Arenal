@@ -4976,6 +4976,7 @@ function buildTypeGrid() {
 }
 
 function openModal(act, dayIndex, slotId, dateStr) {
+  console.warn('[modal] opening for activity:', act ? act.source : 'new', act ? act.guestName : null, act ? act.date : null, act ? act.time : null);
   const isEdit = act !== null;
   editingId = act ? act.id : null;
   pendingCell = act ? null : { dayIndex, slotId, dateStr };
@@ -5036,6 +5037,7 @@ function openModal(act, dayIndex, slotId, dateStr) {
       const _gt = encodeURIComponent((act.time || '').trim());
       const primaryUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`;
       console.warn('[modal] intake fetch URL:', primaryUrl);
+      console.warn('[modal-intake] firing fetch for:', primaryUrl);
       fetch(primaryUrl, { headers: HEADERS })
         .then(r => r.ok ? r.json() : [])
         .then(rows => {
