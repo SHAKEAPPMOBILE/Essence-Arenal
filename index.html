@@ -5028,23 +5028,41 @@ function openModal(act, dayIndex, slotId, dateStr) {
     if (btnSaveEl) btnSaveEl.style.display = 'none';
     if (guestDetailsEl) {
       guestDetailsEl.style.display = '';
-      guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null);
-      // Fetch Supabase record for accurate health/intake data
-      // date must be YYYY-MM-DD (e.g. '2026-04-19'), time must be HH:MM (e.g. '10:00')
+      // Show immediately with loading state in the health section
+      guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null, true);
+      // Fetch Supabase intake data — primary: name+date+time, fallback: name+date only
       const _gn = encodeURIComponent((act.guestName || '').trim());
       const _gd = encodeURIComponent((act.date || '').trim());
       const _gt = encodeURIComponent((act.time || '').trim());
-      console.warn('[modal] intake fetch — guest_name:', act.guestName, '| date:', act.date, '| time:', act.time);
-      fetch(`${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`, { headers: HEADERS })
+      const primaryUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`;
+      console.warn('[modal] intake fetch URL:', primaryUrl);
+      fetch(primaryUrl, { headers: HEADERS })
         .then(r => r.ok ? r.json() : [])
         .then(rows => {
+          console.warn('[modal] intake primary rows:', rows.length, rows);
           if (rows && rows.length > 0) {
-            guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows[0]);
-          } else {
-            console.warn('[modal] intake fetch returned 0 rows — no match for guest_name:', act.guestName, 'date:', act.date, 'time:', act.time);
+            guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows[0], false);
+            return;
           }
+          // Fallback: name + date only (time may not match exactly)
+          const fallbackUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&order=created_at.desc&limit=1`;
+          console.warn('[modal] intake fallback URL:', fallbackUrl);
+          return fetch(fallbackUrl, { headers: HEADERS })
+            .then(r => r.ok ? r.json() : [])
+            .then(rows2 => {
+              console.warn('[modal] intake fallback rows:', rows2.length, rows2);
+              if (rows2 && rows2.length > 0) {
+                guestDetailsEl.innerHTML = buildGuestBookingDetails(act, rows2[0], false);
+              } else {
+                console.warn('[modal] intake: no Supabase record found for:', act.guestName, act.date, act.time);
+                guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null, false);
+              }
+            });
         })
-        .catch(e => console.warn('[modal] Supabase intake fetch error:', e));
+        .catch(e => {
+          console.warn('[modal] Supabase intake fetch error:', e);
+          guestDetailsEl.innerHTML = buildGuestBookingDetails(act, null, false);
+        });
     }
   } else {
     if (clientSection) clientSection.style.display = '';
@@ -5056,14 +5074,17 @@ function openModal(act, dayIndex, slotId, dateStr) {
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
-function buildGuestBookingDetails(act, supaRec) {
+function buildGuestBookingDetails(act, supaRec, loading) {
   const dateStr = act.date ? new Date(act.date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '—';
+  const rawDur = (supaRec && supaRec.duration) ? supaRec.duration : act.duration;
+  const durVal = rawDur ? (String(rawDur).includes('min') ? String(rawDur) : `${rawDur} min`) : null;
   const mainRows = [
     { label: 'Service', value: act.serviceName || '—' },
     { label: 'Guest Name', value: act.guestName || '—' },
     { label: 'Room', value: act.room || '—' },
     { label: 'Date', value: dateStr },
     { label: 'Time', value: act.time || '—' },
+    { label: 'Duration', value: durVal || '—' },
   ].filter(function(r) { return r.value !== '—'; });
 
   // Intake: prefer Supabase record fields (show all), fall back to localStorage intake_form
@@ -5105,11 +5126,20 @@ function buildGuestBookingDetails(act, supaRec) {
 
   var html = '<div class="booking-info-grid">' + rowHtml(mainRows) + '</div>';
 
-  if (intakeRows.length > 0) {
+  var intakeBody;
+  if (loading) {
+    intakeBody = '<div style="padding:10px 0;color:var(--text-muted);font-size:12px;font-family:\'DM Sans\',sans-serif;">Loading…</div>';
+  } else if (intakeRows.length > 0) {
+    intakeBody = '<div class="booking-info-grid">' + rowHtml(intakeRows) + '</div>';
+  } else {
+    intakeBody = null;
+  }
+
+  if (loading || intakeBody) {
     html += '<div class="intake-toggle-row" onclick="toggleIntakeSection(this)">' +
       '<span>🏥 Health &amp; Preferences</span><span class="intake-toggle-arrow">▾</span>' +
       '</div>' +
-      '<div class="intake-collapsible"><div class="booking-info-grid">' + rowHtml(intakeRows) + '</div></div>';
+      '<div class="intake-collapsible">' + (intakeBody || '') + '</div>';
   }
 
   return html;
