@@ -4920,6 +4920,7 @@ function handleBookingInfoOverlayClick(e) {
 }
 
 function openBookingInfoModal(activity) {
+  console.warn('[bookingInfoModal] opening:', activity.source, activity.guestName);
   const host = document.getElementById('booking-info-content');
   if (!host) return;
   const serviceName = activity.serviceName || getTypeNameById(activity.type) || '—';
@@ -4951,6 +4952,69 @@ function openBookingInfoModal(activity) {
       <div class="booking-info-value">${row.value}</div>
     </div>
   `).join('');
+
+  // Health intake section for guest bookings
+  const modalBody = host.parentElement;
+  modalBody.querySelectorAll('.bim-intake-section').forEach(el => el.remove());
+  if (activity.source === 'guest_booking') {
+    const intakeDiv = document.createElement('div');
+    intakeDiv.className = 'bim-intake-section';
+    intakeDiv.innerHTML =
+      '<div class="intake-toggle-row" onclick="toggleIntakeSection(this)" style="margin-top:12px;">' +
+        '<span>🏥 Health &amp; Preferences</span><span class="intake-toggle-arrow">▾</span>' +
+      '</div>' +
+      '<div class="intake-collapsible">' +
+        '<div style="padding:10px 0;color:var(--text-muted);font-size:12px;font-family:\'DM Sans\',sans-serif;">Loading…</div>' +
+      '</div>';
+    modalBody.appendChild(intakeDiv);
+
+    const _renderIntake = (supaRec) => {
+      const _isYes = v => v === true || v === 'yes';
+      const intakeRows = [
+        { label: 'Medications', value: _isYes(supaRec.intake_medications) ? 'Yes ⚠' : 'No' },
+        { label: 'Injuries', value: _isYes(supaRec.intake_injuries) ? 'Yes ⚠' : 'No' },
+        { label: 'Pregnant', value: _isYes(supaRec.intake_pregnant) ? 'Yes ⚠' : 'No' },
+        { label: 'Chronic Pain', value: _isYes(supaRec.intake_chronic_pain) ? 'Yes ⚠' : 'No' },
+        { label: 'Allergies', value: _isYes(supaRec.intake_allergies) ? 'Yes ⚠' : 'No' },
+        { label: 'Pressure', value: supaRec.intake_pressure ? supaRec.intake_pressure.charAt(0).toUpperCase() + supaRec.intake_pressure.slice(1) : 'Medium' },
+        { label: 'Oil Sensitivities', value: supaRec.intake_oil_sensitivities || 'None' },
+        { label: 'Areas to Avoid', value: supaRec.intake_areas_avoid || '—' },
+        { label: 'Treatment Goals', value: supaRec.intake_goals || '—' },
+      ].filter(r => r.value !== '—');
+      const rowHtml = intakeRows.map(r =>
+        `<div class="booking-info-row"><div class="booking-info-label">${r.label}</div><div class="booking-info-value">${r.value}</div></div>`
+      ).join('');
+      const collapsible = intakeDiv.querySelector('.intake-collapsible');
+      if (collapsible) collapsible.innerHTML = `<div class="booking-info-grid" style="margin-top:8px;">${rowHtml}</div>`;
+    };
+
+    const _gn = encodeURIComponent((activity.guestName || '').trim());
+    const _gd = encodeURIComponent((activity.date || '').trim());
+    const _gt = encodeURIComponent((activity.time || '').trim());
+    const primaryUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&time=eq.${_gt}&limit=1`;
+    console.warn('[modal-intake] firing fetch for:', primaryUrl);
+    fetch(primaryUrl, { headers: HEADERS })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => {
+        console.warn('[modal-intake] primary rows:', rows.length, rows);
+        if (rows && rows.length > 0) { _renderIntake(rows[0]); return; }
+        const fallbackUrl = `${SUPA_URL}/rest/v1/guest_bookings?guest_name=eq.${_gn}&date=eq.${_gd}&order=created_at.desc&limit=1`;
+        console.warn('[modal-intake] firing fallback fetch for:', fallbackUrl);
+        return fetch(fallbackUrl, { headers: HEADERS })
+          .then(r => r.ok ? r.json() : [])
+          .then(rows2 => {
+            console.warn('[modal-intake] fallback rows:', rows2.length, rows2);
+            if (rows2 && rows2.length > 0) {
+              _renderIntake(rows2[0]);
+            } else {
+              const collapsible = intakeDiv.querySelector('.intake-collapsible');
+              if (collapsible) collapsible.innerHTML = '<div style="padding:10px 0;color:var(--text-muted);font-size:12px;">No health data found.</div>';
+            }
+          });
+      })
+      .catch(e => console.warn('[modal-intake] fetch error:', e));
+  }
+
   document.getElementById('booking-info-modal').classList.add('open');
 }
 
